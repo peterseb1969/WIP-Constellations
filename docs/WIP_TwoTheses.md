@@ -106,6 +106,75 @@ WIP’s MCP (Model Context Protocol) server closes this gap. It exposes WIP’s 
 
 This creates a complete guardrail stack: WIP’s data model enforces structural correctness (what gets stored), the AI-Assisted Development process enforces procedural correctness (when things happen), and the MCP server enforces interaction correctness (how the AI communicates with WIP). At runtime, the `@wip/client` TypeScript library provides the same interface quality for the running application and its end users.
 
+# The Unexpected Consequence: Your Data Becomes Conversational
+
+The two theses above were the plan. What follows was not planned — it emerged from the implementation.
+
+WIP's MCP server was built as a development tool. Its purpose was narrow: let the AI create terminologies, templates, and test documents during the development process without composing raw HTTP calls. A productivity enhancement for Phases 1–3.
+
+But MCP is a protocol, not a feature of one tool. Any AI that speaks MCP can connect. And the tools the server exposes — `query_documents`, `search_terms`, `get_template_schema`, `get_ontology_relationships` — are not just development tools. They are a **general-purpose AI interface to all data in WIP.**
+
+This changes everything.
+
+## The BI layer is a conversation
+
+Throughout the constellation use case documents, we described a "BI layer" that would sit on top of WIP and generate insights across apps. We imagined dashboards, SQL queries, Metabase configurations, chart widgets. A separate application that a technically skilled person would build and maintain.
+
+With the MCP server, the BI layer is not an application. It is any AI assistant connected to WIP. The user doesn't build dashboards. They ask questions:
+
+*"How much did I spend on groceries last month?"*
+The AI calls `query_documents` on FIN_TRANSACTION with date and category filters. Done.
+
+*"How does that compare to last year, adjusted for inflation?"*
+The AI queries both periods, fetches CPI data, computes the comparison.
+
+*"Show me the trend over 12 months."*
+The AI queries, aggregates, and generates a chart — in the conversation, not in a dashboard.
+
+*"I'm thinking about replacing my windows. Is it worth it?"*
+The AI queries energy consumption (Meter Tracker), indoor temperatures (Climate Logger), current window specs (Equipment Registry), construction costs (external data), subsidy programmes (external data), your financial situation (Statement Manager), and property valuations (external data). It synthesises a reasoned answer. From your data. On your Raspberry Pi. In your kitchen. In whatever language you speak.
+
+No SQL. No dashboard. No technical skill. Just a question and an answer, grounded in your own structured, validated, cross-linked data.
+
+## The apps are the input layer. WIP is the integration layer. The AI is the output layer.
+
+This reframes the entire constellation model:
+
+**The apps** (Statement Manager, Receipt Scanner, Energy Monitor) exist to get data *in* — structured, validated, properly linked. They have UIs because data entry benefits from forms, import wizards, and visual feedback. Humans interact with apps to capture information.
+
+**WIP** exists to store and connect the data — across apps, across domains, with validated schemas, versioned history, and referential integrity. WIP is the platform that ensures the data is trustworthy.
+
+**The MCP server** exists to get insight *out* — in natural language, across any constellation, with no technical skill required. The AI reasons over the structured data and presents answers a human can act on.
+
+This is a fundamentally different product from "a platform for building interconnected apps." It is a **personal data assistant** — one that knows your finances, your energy consumption, your home, your vehicles, your health, because you (or AI-built apps) have been feeding it structured data over time.
+
+## Why this matters for non-technical users
+
+A non-technical person will not build apps for fun. They will not write SQL queries. They will not configure Metabase dashboards. But they might:
+
+- Import their bank statements once a month
+- Photograph their receipts
+- Log their energy meter readings
+- Record when the boiler was serviced
+
+If doing so means they can later *ask their AI assistant questions about their life* that no single app could answer — questions about their spending patterns, their energy efficiency, their renovation decisions, their total cost of raising a child — then the data entry has a clear, tangible payoff.
+
+The barrier to insight drops from "learn SQL and build a dashboard" to "ask in your own language." The barrier to participation drops from "be a developer" to "enter your data."
+
+## What WIP provides that makes this possible
+
+An AI querying unstructured data (a folder of random files, a pile of CSVs) produces unreliable answers. It guesses at field meanings, hallucinates relationships, and cannot validate its own reasoning. This is the fundamental problem with "just dump everything into an LLM context window."
+
+An AI querying WIP produces grounded answers because:
+
+- **Terminologies** ensure values are standardised. "CHF" is always "CHF," not sometimes "Swiss Franc" and sometimes "SFr."
+- **Templates** ensure structure is consistent. Every transaction has an amount, a date, a category, and an account reference. No surprises.
+- **References** ensure relationships are real. A receipt linked to a transaction is a validated link, not a guess based on amount matching.
+- **Versioning** ensures the AI sees current data. If a payslip was corrected, the AI sees the correction, not the original.
+- **The reporting sync** enables SQL for complex aggregations. The MCP server can query PostgreSQL for analytics that would be inefficient as document-by-document retrieval.
+
+Without this structure, conversational data access is a parlour trick. With it, the AI's answers are as trustworthy as the data — and WIP ensures the data is trustworthy.
+
 # Where the Two Theses Meet
 
 The two theses are independent claims, but they reinforce each other in a way that makes the experiment more powerful than either thesis alone.

@@ -161,9 +161,39 @@ Die bisherige Antwort ist «ja, mit Leitplanken». Eine uneingeschränkte KI pro
 
 Wenn dieses Muster Bestand hat — wenn die zweite und dritte App genauso erfolgreich sind wie die erste — dann bedeutet das: Jeder mit einem Raspberry Pi und Zugang zu einem KI-Assistenten könnte sein eigenes persönliches Daten-Ökosystem aufbauen. Nicht «in der Zukunft». Jetzt.
 
+### Der eigentliche Gewinn: Mit deinen eigenen Daten sprechen
+
+Alles bisher Beschriebene — die Apps, das gemeinsame Backend, die Querverbindungen — war als technische Architektur gedacht. Apps bauen, Daten speichern, Abfragen ausführen. Nützlich, aber immer noch ein Werkzeug für technisch versierte Menschen.
+
+Dann passierte etwas Unerwartetes. Eine Komponente, die wir für Entwicklungszwecke gebaut hatten — eine Brücke, die KI-Assistenten die direkte Interaktion mit WIP ermöglicht — stellte sich als weit mehr heraus als ein Entwicklerwerkzeug. Es ist eine universelle Schnittstelle, die **jedem KI-Assistenten erlaubt, alle deine Daten über alle Apps hinweg in normaler Sprache abzufragen.**
+
+Das verändert das gesamte Bild.
+
+Du musst keine Dashboards bauen. Du musst keine Abfragesprache lernen. Du musst nicht einmal eine App öffnen. Du fragst einfach:
+
+*«Wie viel habe ich dieses Jahr fürs Auswärtsessen ausgegeben?»*
+
+Die KI verbindet sich mit WIP, durchsucht deine Transaktionsdaten, filtert nach Kategorie und antwortet. Zwei Sekunden. Keine Tabellenkalkulation.
+
+*«Meine Stromrechnung scheint hoch. Liegt es am Preis oder am Verbrauch?»*
+
+Die KI fragt deine Zählerstände ab, deine Tarifhistorie und Wetterdaten. Sie sagt dir: «Dein Verbrauch ist gegenüber dem Vorjahr sogar um 5% gesunken, aber dein Tarif ist im Januar um 18% gestiegen. Die höhere Rechnung ist komplett ein Preiseffekt.»
+
+*«Soll ich meine Fenster ersetzen?»*
+
+Die KI prüft deine Energiedaten (wie viel Wärme du verlierst), dein Equipment-Register (wie alt die Fenster sind), Baukostendatenbanken (was neue Fenster in deiner Region kosten), staatliche Förderprogramme (welche Zuschüsse es gibt), deine Finanzunterlagen (ob du es dir leisten kannst) und Immobilienbewertungen (ob es den Wert deines Hauses steigert). Sie gibt dir eine fundierte Antwort, gestützt auf *deine* Daten.
+
+Kein Berater. Kein Tabellenkalkulations-Wochenende. Eine Frage und eine Antwort.
+
+**Das ist nur möglich, weil die Daten strukturiert sind.** Eine KI, die einen zufälligen Ordner mit Bank-PDFs und eingescannten Quittungen durchsucht, würde raten, halluzinieren und Fehler machen. Eine KI, die WIP abfragt, bekommt standardisierte Kategorien, validierte Daten, geprüfte Querverweise und Versionshistorie. Die Disziplin, die WIP bei der Dateneingabe erzwingt, ist genau das, was den Unterschied macht zwischen einer zuverlässigen Auskunft und einem Ratespiel.
+
+Die Apps sind der Weg, wie Daten *hineinkommen* — strukturiert und validiert. WIP ist der Weg, wie Daten *verbunden bleiben* — über jeden Lebensbereich hinweg. Und die KI ist der Weg, wie Erkenntnisse *herauskommen* — in deiner Sprache, zu deinen Fragen, aus deinen Daten, auf deiner Hardware.
+
+Das ist keine technische Errungenschaft für Entwickler. Das ist ein **persönlicher Datenassistent für alle.**
+
 ### Der Zinseszins-Effekt
 
-Das Spannendste ist noch nicht passiert. Wir haben eine App. Die Konstellationsthese sagt, die Magie beginnt bei drei oder mehr Apps, wenn die Querverbindungen zwischen den Datensätzen reich genug werden, um Fragen zu beantworten, die keine einzelne App beantworten könnte.
+Das macht den Zinseszins-Effekt noch kraftvoller als ursprünglich beschrieben. Wir haben eine App. Die Konstellationsthese sagt, die Magie beginnt bei drei oder mehr Apps, wenn die Querverbindungen zwischen den Datensätzen reich genug werden, um Fragen zu beantworten, die keine einzelne App beantworten könnte.
 
 Stell dir eine Renovierungsentscheidung vor — soll ich meine alten Fenster ersetzen? — die auf folgende Quellen zurückgreift:
 
@@ -194,4 +224,4 @@ Nach einem Tag funktioniert die erste App. Die zweite App wird testen, ob vernet
 
 **Das Experiment ist öffentlich. Der Prozess ist dokumentiert. Die Einladung steht: zuschauen, kritisieren, selber bauen, oder auf Ergebnisse warten.**
 
-*Aktueller Stand: eine App läuft, acht Lektionen gelernt, null app-übergreifende Abfragen. Der interessante Teil beginnt jetzt.*
+*Aktueller Stand: eine App läuft, zehn Lektionen gelernt, null app-übergreifende Abfragen — aber die wichtigste Entdeckung war die letzte. Wir wollten Apps auf einem gemeinsamen Backend bauen. Am Ende haben wir die Grundlage für einen persönlichen Datenassistenten geschaffen. Ein System, bei dem du deine Daten nicht analysierst — du stellst ihnen einfach Fragen.*

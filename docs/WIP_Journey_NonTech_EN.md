@@ -161,9 +161,39 @@ The answer so far is "yes, with guardrails." An unconstrained AI produces incons
 
 If this pattern holds — if the second and third apps are as successful as the first — it means anyone with a Raspberry Pi and access to an AI assistant could build their own personal data ecosystem. Not "in the future." Now.
 
+### The Real Prize: Talk to Your Own Data
+
+Everything described above — the apps, the shared backend, the cross-links — was designed as a technical architecture. Build apps, store data, run queries. Useful, but still a tool for technically minded people.
+
+Then something unexpected happened. A component we built for development purposes — a bridge that lets AI assistants interact directly with WIP — turned out to be far more than a developer tool. It's a universal interface that lets **any AI assistant query all your data, across all your apps, in plain language.**
+
+This changes the entire picture.
+
+You don't need to build dashboards. You don't need to learn a query language. You don't even need to open an app. You just ask:
+
+*"How much did I spend on dining out this year?"*
+
+The AI connects to WIP, queries your transaction data, filters by category, and answers. Two seconds. No spreadsheet.
+
+*"My energy bill seems high. Is it the price or my consumption?"*
+
+The AI queries your meter readings, your tariff history, and weather data. It tells you: "Your consumption is actually down 5% year-over-year, but your tariff increased 18% in January. The higher bill is entirely a price effect."
+
+*"Should I replace my windows?"*
+
+The AI checks your energy data (how much heat you're losing), your equipment registry (how old the windows are), construction cost databases (what new windows cost in your area), government subsidy programmes (what grants are available), your financial records (whether you can afford it), and property valuations (whether it increases your home's value). It gives you a reasoned answer, grounded in *your* data.
+
+No consultant. No spreadsheet weekend. A question and an answer.
+
+**This is only possible because the data is structured.** An AI querying a random folder of bank PDFs and scanned receipts would guess, hallucinate, and get things wrong. An AI querying WIP gets standardised categories, validated data, verified cross-references, and version history. The discipline that WIP imposes on data entry is what makes conversational data access trustworthy rather than a gimmick.
+
+The apps are how data gets *in* — structured and validated. WIP is how data stays *connected* — across every domain in your life. And the AI is how insight comes *out* — in your language, about your questions, from your data, on your hardware.
+
+That's not a technical achievement for developers. That's a **personal data assistant for everyone.**
+
 ### The Compounding Effect
 
-The most exciting part hasn't happened yet. We have one app. The constellation thesis says the magic happens at three or more, when the cross-connections between datasets become rich enough to answer questions no single app could answer.
+This makes the compounding effect even more powerful than we originally described. We have one app. The constellation thesis says the magic happens at three or more, when the cross-connections between datasets become rich enough to answer questions no single app could answer.
 
 Imagine a renovation decision — should I replace my old windows? — that draws on:
 - Your energy meter data (how much heating energy are you wasting?)
@@ -193,4 +223,4 @@ After one day, the first app works. The second app will test whether connected d
 
 **The experiment is public. The process is documented. The invitation stands: watch, critique, build your own, or wait for results.**
 
-*Current status: one app running, eight lessons learned, zero cross-app queries. The interesting part starts now.*
+*Current status: one app running, ten lessons learned, zero cross-app queries — but the most important discovery was the last one. We set out to build apps on a shared backend. We ended up building the foundation for a personal data assistant. A system where you don’t analyse your data — you just ask it questions.*

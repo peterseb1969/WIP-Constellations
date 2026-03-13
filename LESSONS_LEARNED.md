@@ -404,4 +404,44 @@ The `/build-app` command now includes Step 8 (document the app) before transitio
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 010, 011, etc.) and include date, category, phase, and severity.*
+## Entry 010 — 2026-03-13
+
+**Category:** Emergent capability
+**Phase:** N/A (architectural realisation, not a process step)
+**Severity:** N/A (not a bug — the most important insight of day one)
+
+### What happened
+
+At the end of day one, after all the bug fixes, process improvements, and documentation work, we noticed something that reframes the entire project.
+
+The WIP MCP server was built as a development tool for Phases 1–3 — a way for the AI to create terminologies and templates without composing HTTP calls. But MCP is an open protocol. Any AI assistant that speaks it can connect. And the tools the server exposes — `query_documents`, `search_terms`, `get_ontology_relationships` — are not development-specific. They are a general-purpose AI interface to all data in WIP.
+
+This means the "BI layer" described in every constellation use case document — the dashboards, the SQL queries, the Metabase configuration — is not an application that needs to be built. It is any AI assistant connected to WIP via MCP.
+
+A user doesn’t build dashboards. They ask: *"How much did I spend on groceries last month?"* The AI queries WIP and answers. They ask: *"Should I replace my windows?"* The AI queries energy data, equipment specs, financial records, construction costs, subsidy programmes, and property valuations — and gives a reasoned answer from their data.
+
+### Why this matters
+
+This shifts the product from "a platform for building interconnected apps" to "a platform that lets you talk to your own data." The audience shifts from developers to everyone.
+
+The apps become the **input layer** — they get data in, structured and validated. WIP becomes the **integration layer** — it connects data across domains. The MCP server becomes the **output layer** — any AI gets insight out, in natural language.
+
+And WIP’s structure — the same terminologies, templates, references, and validation that we’ve been building all day — is what makes the AI’s answers trustworthy. An AI querying unstructured files guesses and hallucinates. An AI querying WIP gets standardised vocabularies, validated schemas, verified references, and version history. Structure makes conversational data access reliable, not just impressive.
+
+### What this means for the experiment
+
+The two original theses (shared backend value + AI guardrails) are still valid and still being tested. But there is now an emergent third proposition: **the combination of structured personal data (WIP) and conversational AI access (MCP) creates a personal data assistant that doesn’t exist today.**
+
+Not Siri. Not Alexa. Not ChatGPT with uploaded files. A persistent, growing, validated knowledge base about your own life — financial, operational, physical — that an AI can reason over accurately because the data is structured, not because the AI is clever.
+
+### Lessons
+
+1. **Build infrastructure for the right reasons, and unexpected capabilities emerge.** The MCP server was built to make AI development faster. It turned out to be the user-facing query interface. The schema validation was built to prevent AI coding errors. It turned out to be what makes conversational data access trustworthy. Neither was planned; both emerged from structural decisions.
+
+2. **The three-layer model (apps → WIP → AI) is the product architecture.** Not apps alone. Not WIP alone. Not AI alone. The combination. Each layer has a clear role: input, integration, output. Remove any one and the system is dramatically less valuable.
+
+3. **This reframes who the user is.** The constellation documents were written for a technical audience: developers, data scientists, tinkerers. The conversational access layer makes the user anyone who has data and questions. The apps need to be simple enough for data entry. The AI handles the complexity of analysis.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 011, 012, etc.) and include date, category, phase, and severity.*
