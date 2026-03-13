@@ -359,4 +359,49 @@ The `/implement` command now has a mandatory Step 7: "Export data model to seed 
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 009, 010, etc.) and include date, category, phase, and severity.*
+## Entry 009 — 2026-03-13
+
+**Category:** Missing artifact
+**Phase:** Post Phase 4 (Maintainability)
+**Severity:** High (threatens long-term viability of the ecosystem)
+
+### What happened
+
+After the Statement Manager was built and running, the question arose: how does the next Claude session (or a human developer) understand this app well enough to improve it without introducing regressions or contradicting earlier decisions?
+
+The app had code in git. It had seed files for the data model. It had the dev guardrails for stack conventions. But it had no app-specific documentation explaining: what pages exist and why, how the components are structured, which WIP entities it depends on, what import formats are supported and how columns map to fields, what’s known to be broken or intentionally deferred, and what changed over time.
+
+### Why it matters more for AI-built apps
+
+A human developer who built an app last week remembers the architecture. They remember why the navigation works this way, which edge case the import parser doesn’t handle, and which known bug they intentionally deferred. They carry that context in their head.
+
+An AI has no memory between sessions. Every session starts from zero. Without documentation, the AI must re-derive the architecture from source files, which is slow, error-prone, and context-intensive. Worse, it may make changes that contradict decisions from previous sessions — not because the decisions were wrong, but because it doesn’t know they were made.
+
+This makes documentation more critical for AI-built apps than for human-built apps. Documentation is the mechanism that gives an amnesiac builder continuity across sessions.
+
+### Fix
+
+A new `/document` command generates and maintains a standardized documentation set for every app:
+
+- `README.md` — what the app does, how to run it, prerequisites
+- `ARCHITECTURE.md` — page structure, component hierarchy, data flow, key decisions with rationale
+- `WIP_DEPENDENCIES.md` — which terminologies, templates, and cross-app references the app uses (the contract between the app and WIP)
+- `IMPORT_FORMATS.md` — supported data formats with column mappings and transformations
+- `KNOWN_ISSUES.md` — what’s incomplete, broken, or intentionally deferred
+- `CHANGELOG.md` — what changed, when, and why
+
+The `/build-app` command now includes Step 8 (document the app) before transition to improvement. The `/improve` command now includes Step 7 (update relevant docs with every change). Documentation is part of the definition of done, not an afterthought.
+
+### Lessons
+
+1. **Documentation is the app’s memory.** For AI-built apps, this is literal: without docs, the builder has amnesia. With docs, the builder has continuity. The difference between a maintainable app and a disposable demo is whether the next session can understand it without reading every source file.
+
+2. **The seed files closed one gap; this closes the rest.** `data-model/` makes the data layer reproducible. App documentation makes the application layer understandable. Together, they make the entire app self-contained: clone the repo, run `/bootstrap`, read the docs, and you’re productive.
+
+3. **Document decisions, not just structure.** ARCHITECTURE.md’s most important content is the “why”: why this navigation pattern, why this filter approach, why this import strategy. Without “why,” the next session will reconsider every decision. With “why,” it can focus on what actually needs changing.
+
+4. **WIP_DEPENDENCIES.md is the cross-app contract.** When building the second app, the developer (human or AI) needs to know exactly what the first app created in WIP and how it’s structured. This file is what makes `/add-app` work efficiently — it’s the inventory of reusable entities.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 010, 011, etc.) and include date, category, phase, and severity.*

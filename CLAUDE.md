@@ -109,6 +109,14 @@ To set up a fresh WIP instance from seed files, use `/bootstrap`.
 5. Use MCP tools to create and test the data layer (terminologies, templates, test documents).
 6. Only THEN start writing application code (Phase 4).
 
+## App Documentation — Non-Negotiable
+
+Every app must be self-documenting. AI-built apps need documentation MORE than human-built apps, because the builder has no memory between sessions. The next session — whether it's the same AI, a different AI, or a human — starts cold.
+
+Every app must have: `README.md` (what it does, how to run it), `ARCHITECTURE.md` (how the code is structured and why), `WIP_DEPENDENCIES.md` (which terminologies, templates, and cross-app references it uses), `KNOWN_ISSUES.md` (what's incomplete or broken), and `CHANGELOG.md` (what changed and when). If the app imports data: `IMPORT_FORMATS.md` (which formats, which column mappings, which transformations).
+
+Run `/document` after Phase 4, after significant `/improve` sessions, and before any pause or handoff.
+
 ## Code Quality
 
 - TypeScript strict mode, no `any` types except where interfacing with untyped externals.

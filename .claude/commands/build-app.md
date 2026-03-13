@@ -5,10 +5,57 @@ Phase 3 must be complete with all terminologies, templates, and test documents v
 
 **This phase shifts from MCP tools to @wip/client.** The data model is proven. You are now writing application code that end users will interact with. All runtime WIP interactions go through `@wip/client` and `@wip/react` — not MCP tools.
 
+## Critical: Build Incrementally
+
+Phase 4 is the most token-intensive phase. Do NOT attempt to build the entire app in one session. Break it into focused tasks and commit after each:
+
+1. Scaffold the app structure (commit)
+2. Build the first page/feature (commit)
+3. Build the next page/feature (commit)
+4. Add tests (commit)
+5. Containerize (commit)
+
+If the context window runs out mid-generation, uncommitted code is lost. Phases 1–3 data is safe in WIP, but UI code only survives in git. Commit early, commit often.
+
+Avoid parallel background agents for code generation — they multiply context consumption and risk exhausting the window before any agent completes.
+
 ## Before Writing Any Code
-1. Read `docs/WIP_DevGuardrails.md` — all seven guides apply in this phase.
-2. Read `docs/WIP_ClientLibrary_Spec.md` — understand @wip/client and @wip/react APIs.
-3. Confirm the app name, gateway path, and internal port with the user.
+1. Run `/wip-status` to confirm all terminologies and templates from Phase 3 are intact.
+2. Read `docs/WIP_DevGuardrails.md` — all seven guides apply in this phase.
+3. Read `docs/WIP_ClientLibrary_Spec.md` — understand @wip/client and @wip/react APIs.
+4. Confirm the app name, gateway path, and internal port with the user.
+
+## UX Proposal — GATE (requires user approval)
+
+Before writing any component code, propose the UI plan to the user. This is a product decision, not a technical one — the user must approve it, just like the data model in Phase 2.
+
+Present a concise plan covering:
+- **Page structure:** What pages/views does the app have? What is the landing page?
+- **Navigation:** Sidebar, tabs, top nav? How does the user move between sections?
+- **Primary workflows:** What does the user do most? Import data? Browse transactions? View summaries?
+- **Key screens:** For each page, describe what the user sees — table, cards, charts, forms?
+- **Data entry:** How does data get in? File upload, manual form, paste, API sync?
+- **Mobile considerations:** Which pages must work on phone-width screens?
+
+Example format:
+
+```
+Statement Manager — UI Plan
+
+Pages:
+- Accounts: list of accounts as cards (type, institution, balance, currency)
+- Transactions: filterable table (date range, account, category, type, search)
+- Payslips: monthly timeline, click to expand line item detail
+- Import: upload CSV/PDF, preview parsed data, map columns, confirm
+
+Navigation: sidebar with Accounts / Transactions / Payslips / Import sections
+Landing page: Transactions (most frequently used)
+Top bar: app name, home link to portal, breadcrumbs
+```
+
+**STOP and wait for user approval.** Do not scaffold or write component code until the user approves the UI plan. The user may want a completely different page structure, navigation pattern, or primary workflow than what you propose.
+
+This gate exists because UX decisions are invisible in the data model but determine whether the app is actually usable. A technically correct app with wrong UX decisions wastes the user’s time and the context window.
 
 ## Steps
 
@@ -64,7 +111,29 @@ Per Guide 7 (Testing Contract):
 - [ ] At least one E2E flow works
 - [ ] app-manifest.json is valid
 - [ ] Health endpoint returns 200
-- [ ] README documents what the app does, what WIP templates it uses, how to run it
+- [ ] All documentation files present and current (see Step 8)
+
+### Step 8: Document the app
+
+Run `/document` to generate all required documentation files:
+- README.md — what the app does, how to run it
+- ARCHITECTURE.md — page structure, component hierarchy, data flow, key decisions
+- WIP_DEPENDENCIES.md — terminologies, templates, cross-app references
+- IMPORT_FORMATS.md — supported data formats with column mappings (if applicable)
+- KNOWN_ISSUES.md — what's incomplete or intentionally deferred
+- CHANGELOG.md — initial entry
+
+Commit:
+```
+git add apps/{app-name}/*.md
+git commit -m "docs: initial documentation for {app-name}"
+```
+
+**An undocumented app is an unmaintainable app.** The next session starts cold. Documentation is the app's memory.
+
+## After Phase 4: Iterative Improvement
+
+Once the app passes the definition of done, is documented, and is committed, switch to the `/improve` command for all subsequent work on this app. The `/improve` protocol has different rules than Phase 4 — focused on surgical fixes, not greenfield building.
 
 ## Reminders
 - All runtime data goes through WIP via @wip/client. No local storage.

@@ -122,7 +122,7 @@ By the end of the day:
 **AI configuration:**
 - 1 CLAUDE.md master instruction file
 - 10 slash commands (`/explore`, `/design-model`, `/implement`, `/build-app`, `/improve`, `/export-model`, `/bootstrap`, `/wip-status`, `/add-app`, plus the WIP-status check)
-- 8 lessons learned entries (and counting)
+- 9 lessons learned entries (and counting)
 
 **In WIP:**
 - 5 terminologies with 51 terms
@@ -167,4 +167,64 @@ The experiment is public. The [constellation repository](link) and [WIP reposito
 
 ---
 
-*This document will be updated as the experiment progresses. Current status: one app running, five lessons learned, zero cross-app queries. The interesting part starts now.*
+## Late Addition: Making AI-Built Apps Survive Their Builder
+
+The last problem of day one wasn't a bug. It was a question: what happens tomorrow?
+
+The Statement Manager works. The data model is in WIP. The seed files are in git. The code is committed. But when a new Claude session opens tomorrow to improve the app, it knows nothing. It will read source files, guess at architecture, and potentially undo decisions that were made for good reasons it can't remember.
+
+A human developer who built the app last week carries context in their head — why the navigation works this way, which import edge case is intentionally unhandled, why transactions are the landing page instead of a dashboard. An AI carries nothing. Every session starts from zero.
+
+The fix: **standardised app documentation as a mandatory deliverable**, enforced by the process.
+
+Every constellation app now requires six documentation files alongside its code:
+
+- **README.md** — what the app does, how to run it, what WIP entities it needs
+- **ARCHITECTURE.md** — page structure, component hierarchy, data flow, and critically: key decisions with rationale. "We chose transactions as the landing page because..." prevents the next session from rebuilding a dashboard nobody asked for.
+- **WIP_DEPENDENCIES.md** — which terminologies, templates, and cross-app references the app uses. This is the contract that makes `/add-app` work — the Receipt Scanner reads this to understand what the Statement Manager provides for cross-linking.
+- **IMPORT_FORMATS.md** — for data apps: which bank CSV columns map to which fields, what transformations are applied, what edge cases exist. Import parsers are the most fragile code in any data app; this is how you debug them without re-deriving the logic.
+- **KNOWN_ISSUES.md** — what's broken, what's deferred, and why. Prevents the next session from "fixing" something that's intentionally simple, or missing something that's actually broken.
+- **CHANGELOG.md** — what changed, when, and why. Human-readable evolution, not git log archaeology.
+
+A new `/document` command generates and maintains these files. The `/build-app` command now requires documentation before transition to improvement. The `/improve` command requires updating relevant docs with every change. Documentation is part of the definition of done, not an afterthought.
+
+The insight that prompted this: **documentation is the mechanism that gives an amnesiac builder continuity across sessions.** For human developers, documentation is helpful. For AI developers, it's existential. Without it, every session reinvents the app's architecture from source code. With it, every session picks up where the last one left off.
+
+Combined with the seed files (data model reproducibility) and the lessons learned (process memory), the constellation repo is now self-contained in a meaningful sense: clone it, run `/bootstrap` to set up WIP, read the docs to understand the app, and you're productive — whether you're a human, an AI, or the same AI that built it yesterday and doesn't remember.
+
+---
+
+## Day One: By the Numbers (Final)
+
+**Documentation:**
+- 4 use case documents (Finance, Energy, Vehicle, Home Management)
+- 1 vision document (Two Theses)
+- 1 development guardrails document (7 guides)
+- 1 client library specification
+- 1 replication guide, 1 setup guide
+- 1 journey narrative (this document) plus non-technical versions in English and German
+
+**AI configuration:**
+- 1 CLAUDE.md master instruction file
+- 10 slash commands (`/explore`, `/design-model`, `/implement`, `/build-app`, `/improve`, `/document`, `/export-model`, `/bootstrap`, `/wip-status`, `/add-app`)
+- 9 lessons learned entries
+
+**In WIP:**
+- 5 terminologies with 51 terms
+- 4 templates with validated identity fields and cross-references
+- Test documents and real imported data from Swiss bank statements and payslips
+
+**Running software:**
+- 1 Statement Manager app (React + @wip/client + shadcn/ui)
+- 1 MCP server with OpenAPI-generated schemas (33 tools)
+- 1 TypeScript client library with typed query filters and React hooks
+
+**Process evolution during the day:**
+- 3 new gates added (UX approval, documentation, data model export)
+- 1 bug class made structurally impossible (field naming via schema generation)
+- 1 correction to our own analysis (Entry 006 — verify claims by inspecting, not inferring)
+- The process improved itself 9 times in one day through the lessons learned feedback loop
+
+---
+
+*This document will be updated as the experiment progresses. Current status: one app running, nine lessons learned, zero cross-app queries. The foundation is solid. The documentation is complete. The next app will test whether connected data is truly more valuable than isolated data. That's where the experiment gets interesting.*
