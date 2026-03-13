@@ -10,6 +10,10 @@ An experiment testing two theses simultaneously:
 
 See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
 
+## Disclaimer
+
+This is a personal experiment, not a product. The app supports a random combination of bank statement formats and payslip layouts that happened to be useful for testing. The parsers are brittle by design: they work for a specific selection of input files and will almost certainly fail on yours. Nothing here is intended to be reusable, general-purpose, or production-ready. If you find the *approach* interesting, look at the process and the WIP platform — not the app code.
+
 ## Status
 
 🚧 Experiment in progress. Starting with the Personal Finance constellation.
