@@ -1,0 +1,15 @@
+# Real-world data — never commit
+realworlddata/
+
+# OS
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Environment
+.env

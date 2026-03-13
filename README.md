@@ -1,0 +1,43 @@
+# WIP Constellation
+
+Applications built on [World In a Pie (WIP)](link-to-wip-repo) using AI-assisted development.
+
+## What is this?
+
+An experiment testing two theses simultaneously:
+1. That a shared backend creates compounding value across personal data applications
+2. That an AI assistant, given a structured process and platform guardrails, can build real applications
+
+See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
+
+## Status
+
+🚧 Experiment in progress. Starting with the Personal Finance constellation.
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [Two Theses](docs/WIP_TwoTheses.md) | Why this experiment exists |
+| [Personal Finance Use Case](docs/use-cases/WIP_UseCase_PersonalFinance.md) | First constellation: receipts, statements, investments, subscriptions |
+| [Energy Use Case](docs/use-cases/WIP_UseCase_Energy.md) | Second constellation: metering, solar, climate |
+| [Vehicle Use Case](docs/use-cases/WIP_UseCase_Vehicle.md) | Satellite: fuel, trips, maintenance, TCO |
+| [Home Management Use Case](docs/use-cases/WIP_UseCase_HomeManagement.md) | Third constellation: equipment, maintenance, renovation |
+| [Development Guardrails](docs/WIP_DevGuardrails.md) | UI stack, container patterns, testing contract |
+| [Client Library Spec](docs/WIP_ClientLibrary_Spec.md) | @wip/client and @wip/react specification |
+| [AI-Assisted Development](docs/AI-Assisted-Development.md) | The phased development process |
+| [Lessons Learned](LESSONS_LEARNED.md) | Living record of experiment observations |
+
+## Prerequisites
+
+- A running WIP instance ([WIP repository](link-to-wip-repo))
+- The WIP MCP server configured for Claude Code
+- Node.js 20+ for app development
+- Docker/Podman for containerisation
+
+## For AI developers (Claude Code)
+
+The repository includes a `CLAUDE.md` and custom slash commands in `.claude/commands/`. Start a Claude Code session in this directory and run:
+
+
+/explore # Phase 1: connect to WIP, inventory existing data /design-model # Phase 2: design the data model /implement # Phase 3: create terminologies and templates in WIP /build-app # Phase 4: build the application
