@@ -1,6 +1,6 @@
 # WIP Constellation
 
-Applications built on [World In a Pie (WIP)](link-to-wip-repo) using AI-assisted development.
+Applications built on [World In a Pie (WIP)](https://github.com/peterseb1969/World-in-a-Pie) using AI-assisted development.
 
 ## What is this?
 
