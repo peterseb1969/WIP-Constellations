@@ -30,7 +30,7 @@ See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
 
 ## Prerequisites
 
-- A running WIP instance ([WIP repository](link-to-wip-repo))
+- A running WIP instance ([WIP repository](https://github.com/peterseb1969/World-in-a-Pie))
 - The WIP MCP server configured for Claude Code
 - Node.js 20+ for app development
 - Docker/Podman for containerisation
