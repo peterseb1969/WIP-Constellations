@@ -219,6 +219,25 @@ Combined with the seed files (data model reproducibility) and the lessons learne
 - 1 MCP server with OpenAPI-generated schemas (33 tools)
 - 1 TypeScript client library with typed query filters and React hooks
 
+**Lines of code — Statement Manager app:**
+- 23 TypeScript/TSX source files totalling 3,411 lines
+  - 7 pages: 2,013 lines (largest: ImportPage 636, TransactionsPage 512)
+  - 8 library modules: 1,135 lines (parsers, PDF extraction, config, utils)
+  - 5 components: 196 lines (Layout, Card, ErrorBanner, EmptyState, LoadingSpinner)
+  - 3 other (App, main, wip provider, types): 67 lines
+- 2 test scripts: 518 lines (parser verification against real PDFs)
+- 10 config/infra files: 176 lines (Vite, Tailwind, TypeScript, Docker, Caddy)
+- **Total app: ~4,100 lines**
+
+**Lines of documentation:**
+- 27 Markdown files totalling 6,738 lines
+  - Use case documents, guardrails, client library spec, journey narratives
+  - AI process instructions (CLAUDE.md, slash commands, lessons learned)
+  - Setup guides, replication guide, non-technical summaries (EN + DE)
+- **Documentation-to-code ratio: 1.6:1** — more documentation than application code
+
+**Total lines committed: ~10,800**
+
 **Process evolution during the day:**
 - 3 new gates added (UX approval, documentation, data model export)
 - 1 bug class made structurally impossible (field naming via schema generation)
