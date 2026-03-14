@@ -254,9 +254,15 @@ There is a tension in this vision that must be stated plainly.
 
 WIP keeps your data sovereign **at rest.** Your Raspberry Pi is the source of truth. No cloud service has a copy of your database. No terms of service govern your access to your own financial records. This is real and meaningful.
 
-But the moment you query your data through a cloud-hosted AI — Claude, GPT, or any remote model — your data leaves your home **in transit.** The AI can only reason about data it can see. When you ask "How much did I spend on groceries last month?", your actual transactions are sent to the AI provider's servers for processing. When you ask "Should I replace my windows?", your energy consumption, financial situation, and property details flow through the same channel.
+But personal data can leave your Pi through **three channels** when you work with a cloud AI, not just one:
 
-This is not a security vulnerability. It is the **normal operation** of cloud AI services. But it means the "personal data sovereignty" narrative has a boundary: sovereign at rest, exposed in transit during conversational queries.
+**Channel 1: Development.** When an AI writes a CSV parser for your bank statements, it needs to read your actual bank data to understand the format. Your transactions, IBANs, counterparty names, and amounts appear in the AI’s context as file contents, terminal output, and debug logs. This happens through the normal act of developing against real data — no MCP server required. It happened on Day 1 of our experiment, before the MCP server existed.
+
+**Channel 2: MCP during development.** When the AI calls `query_documents` via the MCP server to test or verify data, your actual WIP records are returned into the AI’s context. Same exposure as Channel 1, different mechanism.
+
+**Channel 3: Conversational queries.** The future "talk to your data" use case. When you ask "How much did I spend on groceries?", your transactions are sent to the AI provider for processing. This is Channel 1 and 2’s exposure, but now it is the *feature*, not a side effect of development.
+
+None of these are security vulnerabilities. They are the **normal operation** of cloud AI services. But they mean the "personal data sovereignty" narrative has a boundary: sovereign at rest, exposed in transit whenever a cloud AI needs to see the data — whether for development, testing, or querying.
 
 ## What this means for users
 
@@ -272,7 +278,9 @@ Users should understand which queries expose which data and make informed choice
 
 ## The path forward
 
-**Local AI models** are the structural solution. Models running on-device (via Ollama, llama.cpp, or similar) speak the same MCP protocol. If the AI runs on the Raspberry Pi alongside WIP, no data ever leaves the home network. Today, local models lack the reasoning capability for complex multi-tool queries (the renovation decision that spans six data sources). This gap is closing rapidly. WIP's architecture is ready for the transition — nothing changes except which AI connects to the MCP server.
+**For development (Channels 1 and 2):** Working with redacted or synthetic sample data eliminates exposure during parser development. However, this slows development significantly — parsers need real data to handle real-world edge cases (dates glued to text, amounts merged with references, trailing quotes in counterparty names). The pragmatic tradeoff: use real data during development, accept the cloud exposure, switch to local AI models when they are capable enough.
+
+**Local AI models** are the structural solution for all three channels. Models running on-device (via Ollama, llama.cpp, or similar) speak the same MCP protocol. If the AI runs on the Raspberry Pi alongside WIP, no data ever leaves the home network. Today, local models lack the reasoning capability for complex multi-tool queries (the renovation decision that spans six data sources). This gap is closing rapidly. WIP's architecture is ready for the transition — nothing changes except which AI connects to the MCP server.
 
 **Role-based MCP access** could limit which tools, templates, and documents a session can see. Financial data might be excluded from casual sessions and only available in a dedicated context with explicit user consent.
 

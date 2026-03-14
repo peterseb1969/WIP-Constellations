@@ -195,9 +195,13 @@ Das ist keine technische Errungenschaft für Entwickler. Das ist ein **persönli
 
 Wir müssen etwas direkt ansprechen, denn genau die Menschen, die sich am meisten über «deine Daten bleiben bei dir zuhause» freuen, werden diese Frage stellen.
 
-WIP speichert deine Daten auf deinem Raspberry Pi. Kein Cloud-Dienst hat eine Kopie deiner Datenbank. Das ist real und es ist wichtig. **Aber** — wenn du einem KI-Assistenten eine Frage über deine Daten stellst, müssen deine Daten zur KI übertragen werden, damit sie verarbeitet werden können. Wenn du fragst «Wie viel habe ich fürs Auswärtsessen ausgegeben?», werden deine tatsächlichen Transaktionen an den KI-Anbieter (wie Anthropic, die Claude herstellen) gesendet, damit er die Antwort berechnen kann. Dein Gehalt, deine IBANs, deine Ausgabengewohnheiten — sie verlassen deinen Pi für die Dauer dieses Gesprächs.
+WIP speichert deine Daten auf deinem Raspberry Pi. Kein Cloud-Dienst hat eine Kopie deiner Datenbank. Das ist real und es ist wichtig. **Aber** — deine Daten können deinen Pi auf mehr Wegen verlassen, als du vielleicht erwartest, wenn eine Cloud-KI im Spiel ist.
 
-So funktionieren alle Cloud-KI-Dienste. Es ist nicht anders, als die Mobile-Banking-App deiner Bank zu nutzen (deine Daten reisen auch zu deren Servern). Aber es bedeutet, dass «persönliche Datenhoheit» eine Grenze hat: **Souverän im Ruhezustand, exponiert im Transit, wenn du über eine Cloud-KI abfragst.**
+Der offensichtliche Weg: Wenn du fragst «Wie viel habe ich fürs Auswärtsessen ausgegeben?», werden deine Transaktionen an den KI-Anbieter gesendet, damit er die Antwort berechnen kann.
+
+Der weniger offensichtliche: Schon während der *Entwicklung*, bevor das «Mit-deinen-Daten-sprechen»-Feature überhaupt zum Einsatz kommt. Wenn eine KI eine App baut, die deine Kontoauszüge liest, muss sie deine echten Bankdaten sehen, um das Format zu verstehen. Deine Transaktionen, Kontonummern und Empfängernamen erscheinen auf den Servern des KI-Anbieters als Teil des Entwicklungsprozesses. Das ist an Tag 1 unseres Experiments passiert — die KI brauchte echte UBS- und Yuh-Daten, um den Import-Code korrekt zu schreiben.
+
+So funktionieren alle Cloud-KI-Dienste. Es ist nicht anders, als die Mobile-Banking-App deiner Bank zu nutzen (deine Daten reisen auch zu deren Servern). Aber es bedeutet, dass «persönliche Datenhoheit» eine Grenze hat: **Souverän im Ruhezustand, exponiert im Transit, wann immer eine Cloud-KI mit deinen Daten arbeitet — ob beim App-Bau, beim Testen oder bei der Abfrage im Gespräch.**
 
 Es gibt eine Lösung in Sicht: **KI-Modelle, die lokal laufen**, auf dem Raspberry Pi selbst oder auf deinem Heimcomputer. Diese lokalen Modelle sprechen dasselbe Protokoll wie die Cloud-KI. Wenn sie leistungsfähig genug für komplexe Fragen werden (was schnell voranschreitet), verlassen deine Daten nie dein Zuhause — nicht im Ruhezustand, nicht im Transit, nie. WIP ist für diese Zukunft bereits gebaut. Es muss sich nichts ändern — nur welche KI deine Fragen beantwortet.
 

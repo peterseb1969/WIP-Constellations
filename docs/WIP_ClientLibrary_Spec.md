@@ -159,11 +159,11 @@ const wip = createWipClient({
 
 // Required
 
-host: 'https://wip-pi.local', // Base URL (gateway or direct)
+baseUrl: 'https://wip-pi.local', // Base URL (gateway or direct)
 
 // Authentication (one of):
 
-auth: { mode: 'api-key', key: 'my-api-key' },
+auth: { type: 'api-key', key: 'my-api-key' },
 
 // OR
 

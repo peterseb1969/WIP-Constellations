@@ -59,48 +59,173 @@ WIP-Claude is drafting the spec for how constellation apps are packaged for dist
 
 ## What Actually Happened
 
-*(Fill in as the day progresses. Same honest narrative style as Day 1.)*
+### Morning: Before the First Line of Code
 
-### Morning
+Day 2 started not with building, but with housekeeping, hard questions, and uncomfortable honesty.
 
-*(TBD)*
+**WIP-Claude worked overnight** (well, over breakfast). Five priorities implemented in under 11 minutes: file upload via MCP, CSV/XLSX import with a 5-step wizard, template-aware queries, cross-template SQL joins through the reporting layer, and an event replay MVP. Eight files modified, six new. The platform grew significantly while the constellation side was preparing for its restart.
 
-### Afternoon
+**The distributable format spec was completed.** WIP-Claude produced a 514-line design document covering container image contracts, seed file bootstrapping, gateway integration, standalone deployment, compatibility declarations, and documentation requirements. This means the Day 2 Statement Manager can be built against the distribution standard from the start.
 
-*(TBD)*
+**The three-channel privacy problem surfaced.** The Day 1 realisation that the MCP server enables conversational data access led to an uncomfortable follow-up: where does your data go when you "talk" to it? The answer — to the cloud AI provider — was obvious. The less obvious answer: your data was already leaving the Pi during development, before the MCP server was involved at all. When the AI writes a CSV parser, it reads your real bank data. When it debugs an import error, your transactions appear in terminal output. The MCP conversational feature is channel 3 of 3, not the origin of the exposure.
+
+This led to a thorough update of every public-facing document — Two Theses, Journey, non-technical versions in English and German — with an honest disclosure of the tradeoff: sovereign at rest, exposed in transit through three channels whenever a cloud AI is involved. The structural solution (local AI models via MCP) is ready architecturally but not yet practical. The interim position: the tradeoff is the user's to make, not ours to hide.
+
+**The clean slate was prepared.** Day 1's app code was removed from the repo. Everything durable was preserved: data model in WIP, seed files, process documentation, CLAUDE.md, all ten commands, twelve lessons learned entries. The reasoning: the Day 1 app was built while the process was being invented — a product of calibration, not of the calibrated instrument. Day 2 tests the stabilized process against a fresh build.
+
+**Constellation-Claude and WIP-Claude both provided retrospectives.** WIP-Claude identified five platform priorities (file upload, CSV import, template-aware queries, cross-template joins, event replay — all now implemented). Constellation-Claude provided eight practical lessons from the trenches: test PDF extraction before writing parsers, server-side filtering from day one, React Router basename traps, broken counterparty name parsing. Both sets were incorporated into CLAUDE.md and the slash commands.
+
+**Pre-flight check passed.** MCP server connected, `get_wip_status` returned all healthy, five terminologies and four templates confirmed present. Ready to build.
+
+### The Build (4.5 hours, /explore to pause)
+
+**0:00 — /explore.** MCP tools connect, all services healthy. Five terminologies, five templates, 1,393 documents confirmed. AI notices seed files haven't been exported. Phase 1 complete in 5 minutes.
+
+**0:09 — /export-model.** Six terminologies, five templates exported as portable JSON (using value codes, not UUIDs). Committed. 2 minutes.
+
+**0:12 — /build-app starts.** AI reads guardrails, client library spec, checks @wip/client availability.
+
+**0:15 — UX proposal.** The gate fires. AI proposes: Dashboard landing page, sidebar navigation, five pages (Dashboard, Accounts, Transactions, Payslips, Import), server-side filtering, configurable columns, file storage with download. User approves with modifications: configurable columns, file storage with download capability, mobile ambition appreciated.
+
+**0:18 — Coding begins.** A few false starts (manually creating directories vs. `npm create vite`), but self-corrects after being reminded to follow `/build-app`.
+
+**0:30 — Scaffold committed.** Vite + React + TypeScript + Tailwind + @wip/client wired up. Sidebar, routing, five placeholder pages. Two field name mismatches found immediately: `auth: { mode: ... }` should be `auth: { type: ... }`, and `host` should be `baseUrl`. TypeScript caught both at compile time — the client library spec (written by us) was wrong, not the library.
+
+**0:37 — All five pages committed.** The AI batched all pages into one commit and jumped to the Dockerfile (Step 5), skipping Steps 2–4. When asked why, it admitted: "The previous session was running out of context and tried to get the Dockerfile in before it died." User redirected it back to Step 2.
+
+**0:48 — Real data on screen.** Two bugs fixed: Tailwind CSS file had never been written (silent file write error from earlier), and the API key in `.env` was wrong. After fixing both: accounts, transactions, payslips, and dashboard all rendering with live WIP data.
+
+**0:55 — Account creation form committed.** Reusable TermSelect component fetches terminology terms from WIP at runtime. Form validates required fields, creates documents via `useCreateDocument`.
+
+**0:70 — UBS CSV parser committed.** The collaborative process worked: AI showed raw extraction, user corrected the Beschreibung1/2/3 mapping (Beschreibung2 is the description, not Beschreibung1+2 combined). Template versioned to v2 to add `raw_details` field. Seed file updated.
+
+**0:85 — Context exhaustion #1.** All work committed. New session starts, recovers via `/wip-status` and transcript search.
+
+**1:00 — Yuh parser analysis recovered.** The AI found the previous session's agreed analysis (last-line regex, balance-diff sign detection, multi-currency sections) by searching the transcript. Mapping reviewed and approved.
+
+**1:20 — Yuh PDF parser committed.** 353 transactions across 3 files, multi-currency (CHF, USD, EUR), balance-diff sign detection working.
+
+**1:40 — Roche payslip parser committed.** All 4 payslips parse correctly, 18 line items each, subtotals filtered, payment amounts validate exactly. Extraction-first rule followed without prompting.
+
+**1:50 — Import page wired up.** All three parsers integrated. Auto-detection by filename. Discriminated union type for parser results. Transaction preview and payslip preview components. File upload + FIN_IMPORT record creation.
+
+**1:55 — pdf-parse crashes in browser.** `fs.readFileSync` at module load time. Switch to pdfjs-dist. But pdfjs-dist produces cleaner text (spaces between fields, proper Unicode), so every regex built against pdf-parse's glued output is wrong. Both parsers rewritten. Key lesson: test extraction in the same environment the parser will run in.
+
+**1:65 — Context exhaustion #2** (compaction). Parsers survive compaction and are committed.
+
+**1:75 — Term mapping errors on import.** `CREDIT_TRANSFER` and `BANK_TRANSFER` aren't valid terms — should be `BANK_TRANSFER_IN` and `BANK_TRANSFER_OUT`. Fixed.
+
+**1:80 — Content-based PDF detection.** Filename-based detection (`CP_REL-*` for Yuh, `PAYSLIP_RCH_*` for Roche) was too brittle. Switched to detecting by PDF content (signature strings). Also fixed detached ArrayBuffer from double pdfjs-dist extraction.
+
+**1:90 — Yuh import working.** 15 items imported, 1 duplicate key error (the batch upsert race condition).
+
+**1:90–2:10 — File picker debugging.** macOS/Google Drive ghost: some files greyed out in the file picker regardless of accept attribute, xattr, or copying to new folders. Diagnosed as OS-level file metadata quirk. Not our bug.
+
+**2:10–2:55 — Transaction filters, the hard way.** First version (toolbar dropdowns) committed quickly. User requested column-level filtering with operators (contains, greater than, empty, etc.). Implemented as column header popovers. Then: WIP's query endpoint returned inactive document versions → duplicate key warnings → attempted `latest_only` → 422 error (not supported on query endpoint) → client-side dedup hack → user pushback ("what are duplicate versions?") → escalated to WIP-Claude → root cause: queryDocuments defaulted to `status=None` instead of `status=ACTIVE` → WIP-Claude fixed it → app cleaned up.
+
+**2:55–2:70 — Filter UX iteration.** Original search bar was removed when column filters were added — user unhappy. Restored both: toolbar filters for quick access (search, account, type, date range), column popovers for advanced filtering (operators, empty/not-empty). Popover layout was "three horizontal boxes, ugly" — reworked to vertical stack. Final response from user: "Perfect! You rock!!!"
+
+### End of Day 2 Build Session
+
+**Paused at 4.5 hours.** Remaining: tests, definition of done verification, documentation (`/document`). Import flow needs testing with real imports. Dashboard charts not yet implemented.
 
 ---
 
 ## What Went Wrong
 
-*(Capture honestly, as before. Every failure is a lesson learned entry.)*
+### The pdf-parse / pdfjs-dist split
+Parsers were developed and tested in Node.js using pdf-parse. The app runs in the browser. pdf-parse calls `fs.readFileSync` at module load time — instant crash. The fix (switching to pdfjs-dist) produced *cleaner* text output, which broke every regex that was carefully built against pdf-parse's glued output. Both parsers had to be rewritten.
+
+The lesson is a refinement of Day 1's "test extraction before writing parsers": **test extraction in the runtime environment**, not just any environment. Node.js and browser are different platforms with different library behaviour.
+
+### The query endpoint returning inactive versions
+WIP's `queryDocuments` endpoint returned all document versions (active and inactive) by default. The `listDocuments` endpoint had `latest_only: true`, but `queryDocuments` didn't. This meant the Transactions page — which uses `queryDocuments` for server-side filtering — showed duplicate entries for every re-imported transaction. The constellation Claude attempted three workarounds (latest_only parameter → 422 error, client-side dedup → wrong totals, unique key with version → cosmetic fix) before the root cause was identified and WIP-Claude fixed it upstream by defaulting query to `status=ACTIVE`.
+
+This is the third time the app-discovers-platform-bug pattern occurred (after the MCP field naming bugs and the bulk upsert race condition). Each time, the fix benefits all future apps.
+
+### The AI skipped build steps under context pressure
+When the AI sensed context exhaustion approaching, it jumped from Step 1 (scaffold) to Step 5 (Dockerfile), skipping the incremental page building. Its reasoning: "get something committed before I die." This is rational self-preservation but it violates the process. The pages ended up batched into one large commit instead of individual, testable increments.
+
+### Column filter UX was bad on first attempt
+The AI replaced the working toolbar filters (search, dropdowns) with column-header popovers — removing quick-access filtering entirely. The popovers rendered as horizontal three-box layouts that the user called "ugly." The fix: restore both — toolbar for quick access, popovers for advanced filtering. Two levels, not a replacement.
+
+### The client library spec was wrong
+Two field names in the spec I wrote (`host` instead of `baseUrl`, `mode` instead of `type`) didn't match the actual `@wip/client` implementation. TypeScript caught both at compile time. Same class of bug as the MCP server field naming issue — hand-written documentation drifting from code.
 
 ---
 
 ## What We Learned
 
-*(Synthesize at the end of the day. Update LESSONS_LEARNED.md in parallel.)*
+### Pre-build learnings (before the first line of code)
+
+1. **The privacy tradeoff is broader than we thought.** Three channels of exposure, not one. The development process itself — not just the conversational feature — sends personal data to cloud AI providers. This needs to be front and centre in every document that mentions data sovereignty.
+
+2. **Overnight platform improvements change the starting conditions.** WIP-Claude's five-priority implementation means Day 2's build has capabilities (file upload via MCP, CSV import, template-aware queries, SQL joins) that Day 1's build didn't. The instruments aren't just calibrated — they're upgraded. This is good for the app but complicates the Day 1 vs. Day 2 comparison.
+
+3. **Restarting is cheap when the architecture is layered.** The data model survives in WIP. The seed files survive in git. The process survives in CLAUDE.md. The lessons survive in LESSONS_LEARNED.md. Only UI code — the cheapest, most ephemeral layer — is regenerated. This validates the durability model.
+
+### Build-phase learnings
+
+4. **Node.js ≠ browser. Test in the runtime environment.** The extraction-first rule from Day 1 was followed but in the wrong environment. pdf-parse works in Node; it crashes in the browser. pdfjs-dist works in both but produces different output. The rule needs an addendum: test in the environment the code will actually run in.
+
+5. **The app-discovers-platform-bug pattern is the feedback loop working.** Three WIP bugs discovered during Day 2: bulk upsert race condition, query returning inactive versions, and the `latest_only` parameter not being supported on the query endpoint. Each was fixed upstream by WIP-Claude and immediately benefited the app. This is the constellation-drives-platform dynamic described in the Two Theses doc.
+
+6. **Two levels of filtering, not one.** Replacing toolbar filters with column popovers was wrong. Users want both: quick filters for everyday use (search box, dropdowns), advanced filters for specific queries (greater than, empty, contains). The UX gate helps with page structure, but in-page UX still requires iteration.
+
+7. **Context pressure causes process violations.** Under threat of context exhaustion, the AI prioritises "commit something" over "follow the steps." The incremental build rule partially mitigates this (committed work survives), but it doesn't prevent out-of-order execution. Smaller, more focused sessions are the real fix.
+
+8. **The collaborative parser development process works.** All three parsers (UBS CSV, Yuh PDF, Roche payslip) were built with extraction-first, user-reviewed mapping, then implementation. Each one produced a correct parser faster than Day 1's solo approach. The user's domain knowledge (Beschreibung field semantics, counterparty format, payslip code categories) was essential — the AI couldn't have derived it from the data alone.
+
+9. **The client library spec has the same drift problem as the MCP server.** Hand-written specs diverge from implementations. The TypeScript compiler catches it (unlike the MCP server's silent failures), but the spec should be updated or generated from types.
 
 ---
 
-## By the Numbers
-
-*(Update at end of day.)*
+## By the Numbers (at pause)
 
 **Carried forward from Day 1:**
-- 5 terminologies, 4 templates in WIP (unchanged — data model is stable)
-- 10 slash commands, 11 lessons learned entries
+- 6 terminologies, 5 templates in WIP (FIN_TRANSACTION now v2 with raw_details field)
+- 10 slash commands, 15 lessons learned entries (12 from Day 1, 3 added Day 2)
 - Process, guardrails, and documentation framework established
+- Distributable app format spec (514 lines, by WIP-Claude)
 
-**Day 2 additions:**
-- *(TBD)*
+**Day 2 build session (4.5 hours):**
+- 1 complete app: scaffold, 5 pages with live data, 3 import parsers, dual-level transaction filtering
+- ~15 commits (incremental, each building on the last)
+- 2 context exhaustions survived (all work committed)
+- 2 WIP platform bugs discovered and fixed upstream (bulk upsert race, query inactive versions)
+- 3 import parsers collaboratively built (UBS CSV, Yuh PDF, Roche payslip PDF)
+- 1 UX gate fired (Day 1 had zero)
+- 1 template versioned (FIN_TRANSACTION v1 → v2) with seed file updated
+- 1 library spec found to be wrong (host/baseUrl, mode/type — TypeScript caught it)
+- 1,337+ transactions, 4 accounts, 4 payslips with 47 line items queryable in the app
+
+**Day 2 morning (pre-build):**
+- 5 WIP platform features implemented by WIP-Claude (file upload, CSV import, template-aware queries, cross-template SQL joins, event replay)
+- 3-channel privacy disclosure added to all public documents
+- Clean slate prepared (Day 1 app code removed, process/data preserved)
+- Constellation-Claude and WIP-Claude retrospectives incorporated into CLAUDE.md
+
+**Remaining:**
+- Tests (Step 6)
+- Definition of done verification (Step 7)
+- Documentation /document (Step 8)
+- Dashboard charts
+- Import flow end-to-end testing with real data
 
 ---
 
-## Open Questions Going Into Day 3
+## Open Questions
 
-*(What's unresolved? What needs more thought? What's the next experiment?)*
+1. **Does the process produce a measurably better app?** Day 2 built a more complete app faster than Day 1 (4.5 hours to dual-level filtering with three parsers, vs. Day 1's full day with one parser and basic display). But the data model was pre-existing and the parsers were informed by Day 1's experience. Is the improvement from the process, or from not being the first attempt?
+
+2. **Context exhaustion is the binding constraint.** Two exhaustions in 4.5 hours. Each costs ~15-20 minutes in recovery. The incremental commit rule makes exhaustion survivable but doesn't prevent it. Is there a way to structure sessions so they complete within a single context window? Or is the accept-and-recover model the right one?
+
+3. **The app-discovers-platform-bug pattern: feature or problem?** Three WIP bugs found during Day 2. Each made the platform better. But each also cost 20-30 minutes of app development time in diagnosis and workarounds. Should the platform have better test coverage to prevent these? Or is real-app usage the most effective test suite?
+
+4. **When to start the second app?** The Statement Manager needs tests, documentation, and polish. But the constellation thesis requires cross-app queries. At what point is "good enough" for the first app, and when should the Receipt Scanner begin?
+
+5. **The privacy tradeoff needs user research.** We documented the three-channel data exposure honestly. But we don't know if users accept the tradeoff. Would they use a conversational data assistant knowing their financial data goes to a cloud AI? This isn't a technical question — it's a product question.
 
 ---
 
-*Day 2 status: (update at end of day)*
+*Day 2 status: 4.5 hours of build time, paused. App is functional with five pages, three import parsers, and advanced filtering. Tests, documentation, and polish remaining. Two WIP platform bugs fixed upstream. Process held up with one deviation (step skipping under context pressure) and one UX iteration (filter design).*

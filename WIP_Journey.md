@@ -205,7 +205,9 @@ This wasn't in the plan. It emerged from building the thing. That might be the m
 
 In the excitement of the MCP realisation, we almost missed something important. The story says: your data lives on your Raspberry Pi, in your home, under your control. No cloud. No data harvesting.
 
-But the moment you ask Claude "How much did I spend on groceries?", your actual transaction data — counterparty names, amounts, dates, IBANs — is sent to Anthropic's servers for processing. The Raspberry Pi's sovereignty is real at rest. It is broken in transit every time you use a cloud AI to query your own data.
+But personal data leaves the Pi through three channels, not one. First, during **development**: when the AI writes a CSV parser for your bank statements, it reads your actual financial data to understand the format. Your transactions, IBANs, and counterparty names appear in the AI’s context as file contents and terminal output. This happened on Day 1, before the MCP server existed. Second, during **MCP-assisted development**: the AI queries WIP to test and verify, and your real data comes back. Third, the one we noticed: **conversational queries**, where "How much did I spend on groceries?" sends your transactions to the AI provider.
+
+The first channel is the one people miss. You don’t need the MCP server to expose data to a cloud AI. You just need to develop against real data — which every developer does. The Raspberry Pi’s sovereignty is real at rest. It is broken in transit through multiple channels whenever a cloud AI is involved.
 
 This is not a bug. It is the normal operation of cloud AI services. And it needs to be said out loud, because the people most attracted to "personal data sovereignty on a Raspberry Pi" are exactly the people who care most about where their data goes.
 

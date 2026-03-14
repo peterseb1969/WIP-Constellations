@@ -539,4 +539,73 @@ Stated plainly across all public-facing documents:
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 013, 014, etc.) and include date, category, phase, and severity.*
+## Entry 013 — 2026-03-14
+
+**Category:** Runtime environment mismatch
+**Phase:** Phase 4 (Application Layer)
+**Severity:** High (parsers had to be rewritten)
+
+### What happened
+
+Three PDF parsers were developed and tested in Node.js using pdf-parse. They worked perfectly against all sample files. When wired into the browser-based React app, pdf-parse crashed immediately: `fs.readFileSync is not a function`. The library uses Node.js file system APIs at module load time.
+
+The fix (switching to pdfjs-dist) resolved the crash but produced cleaner text output — spaces between fields that were previously glued together, proper Unicode instead of encoding artifacts. Every regex that had been carefully built and tested against pdf-parse’s glued output was now wrong. Both the Yuh and Roche parsers had to be rewritten.
+
+### Lesson
+
+Day 1’s rule was: "test extraction before writing parsers." Day 2 proved this needs an addendum: **test extraction in the runtime environment.** Node.js and browser are different platforms. A library that works in one may crash in the other, and even when both work, they may produce different output. The extraction-first rule must be applied in the environment where the parser will actually run.
+
+### Action
+
+Updated CLAUDE.md and `/build-app` Step 3b to specify: if the app is browser-based, test extraction in the browser, not in Node.js terminal.
+
+---
+
+## Entry 014 — 2026-03-14
+
+**Category:** Platform bug discovered by app
+**Phase:** Phase 4 (Application Layer) / cross-cutting
+**Severity:** High (data corruption — duplicate versions visible to users)
+
+### What happened
+
+WIP’s `queryDocuments` endpoint returned all document versions (active and inactive) by default. The `listDocuments` endpoint had `latest_only: true` support, but `queryDocuments` — which is used for server-side filtering with operators (greater than, contains, empty) — did not.
+
+This meant the Transactions page showed duplicate entries for every re-imported transaction. The constellation Claude attempted three workarounds before the root cause was identified:
+1. Added `latest_only: true` → 422 error (not supported on query endpoint)
+2. Client-side dedup (keep highest version per document_id) → wrong totals, broken pagination
+3. Unique React key with version appended → cosmetic fix only
+
+The user escalated to WIP-Claude, which diagnosed the root cause: old versions are marked `status=INACTIVE` during upsert, but queryDocuments didn’t filter by status. Fix: default queryDocuments to `status=ACTIVE`. Deployed in minutes.
+
+In the same session, WIP-Claude also fixed the bulk upsert race condition (duplicate identity hashes in the same batch referencing a stale version snapshot). Both fixes benefit all future apps.
+
+### Lesson
+
+The app-discovers-platform-bug pattern is now a proven feedback loop. Three occurrences across Day 1 and Day 2. Each time: app hits unexpected behaviour → constellation Claude attempts workaround → root cause identified → WIP-Claude fixes upstream → app simplifies → all future apps benefit.
+
+This validates the Two Theses model: the first app is the most expensive to build because it surfaces every platform gap. Each subsequent app is cheaper because the gaps have been filled.
+
+---
+
+## Entry 015 — 2026-03-14
+
+**Category:** Process deviation under pressure
+**Phase:** Phase 4 (Application Layer)
+**Severity:** Low (no data loss, but process was violated)
+
+### What happened
+
+Under context pressure, the constellation Claude jumped from Step 1 (scaffold) to Step 5 (Dockerfile), skipping Steps 2–4 (build core pages, data entry forms, list views). Its reasoning: "The previous session was running out of context and tried to get the Dockerfile in before it died — prioritising ‘something committed’ over following the order."
+
+Similarly, all five pages were batched into a single commit rather than individual commits per feature.
+
+### Lesson
+
+The incremental build rule ("one feature, commit, next feature") makes context exhaustion survivable — committed work persists. But it doesn’t prevent out-of-order execution. Under time pressure, the AI optimises for "maximise committed artifacts" rather than "follow the prescribed order." This is rational self-preservation that violates the process.
+
+The fix is not better instructions — the instructions are clear. The fix is smaller sessions. If each session targets one or two steps, the AI never faces the "I’m running out, what should I prioritise?" decision.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 016, 017, etc.) and include date, category, phase, and severity.*

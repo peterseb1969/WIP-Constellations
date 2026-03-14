@@ -195,9 +195,13 @@ That's not a technical achievement for developers. That's a **personal data assi
 
 We need to address something directly, because the people most excited about "your data stays in your home" are exactly the people who will ask this question.
 
-WIP keeps your data on your Raspberry Pi. No cloud service has a copy of your database. That's real and it matters. **But** — when you ask an AI assistant a question about your data, your data has to travel to the AI to be processed. When you ask "How much did I spend on dining out?", your actual transactions are sent to the AI provider (like Anthropic, who makes Claude) so it can compute the answer. Your salary, your IBANs, your spending habits — they leave your Pi for the duration of that conversation.
+WIP keeps your data on your Raspberry Pi. No cloud service has a copy of your database. That's real and it matters. **But** — your data can leave your Pi in more ways than you might expect when a cloud AI is involved.
 
-This is how all cloud AI services work. It's no different from using your bank's mobile app (your data travels to their servers too). But it means "personal data sovereignty" has a boundary: **sovereign at rest, exposed in transit when you query through a cloud AI.**
+The obvious one: when you ask "How much did I spend on dining out?", your transactions are sent to the AI provider so it can compute the answer.
+
+The less obvious one: even during *development*, before the "talk to your data" feature is involved at all. When an AI builds an app that reads your bank statements, it needs to see your actual bank data to understand the format. Your transactions, account numbers, and payee names appear on the AI provider's servers as part of the development process. This happened on Day 1 of our experiment — the AI needed real UBS and Yuh data to write the import code correctly.
+
+This is how all cloud AI services work. It's no different from using your bank's mobile app (your data travels to their servers too). But it means "personal data sovereignty" has a boundary: **sovereign at rest, exposed in transit whenever a cloud AI touches your data — whether for building apps, testing them, or querying your data through conversation.**
 
 There's a solution coming: **AI models that run locally**, on the Raspberry Pi itself or on your home computer. These local models speak the same protocol as cloud AI. When they become powerful enough to handle complex questions (which is happening fast), your data never leaves your home — not at rest, not in transit, not ever. WIP is already built for this future. Nothing needs to change except swapping which AI answers your questions.
 

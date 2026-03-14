@@ -360,9 +360,9 @@ import { WipProvider, useDocuments, useCreateDocument } from '@wip/react';
 
 const wip = createWipClient({
 
-host: 'https://wip-pi.local',
+baseUrl: 'https://wip-pi.local',
 
-auth: { mode: 'api-key', key: import.meta.env.VITE_WIP_API_KEY },
+auth: { type: 'api-key', key: import.meta.env.VITE_WIP_API_KEY },
 
 });
 

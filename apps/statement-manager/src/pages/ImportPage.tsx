@@ -797,7 +797,7 @@ export function ImportPage() {
                 Choose File
                 <input
                   type="file"
-                  accept=".csv,.pdf,.PDF,application/pdf,text/csv"
+                  accept=".csv,.pdf"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
