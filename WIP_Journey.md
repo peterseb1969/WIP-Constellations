@@ -8,7 +8,7 @@
 
 The premise was simple but ambitious: what if all your personal data — finances, energy consumption, home maintenance, vehicle costs, health metrics — lived in one shared backend instead of dozens of disconnected apps? And what if an AI could build the apps?
 
-The backend already existed: **World In a Pie (WIP)**, a generic, domain-agnostic storage engine. WIP doesn't know what a bank transaction is. It knows what a terminology is (controlled vocabulary), what a template is (schema with typed fields), and what a document is (validated data conforming to a template). It handles identity resolution, versioning, referential integrity, and real-time sync to PostgreSQL for SQL analytics. It runs on a Raspberry Pi.
+The backend already existed: [**World In a Pie (WIP)**](https://github.com/peterseb1969/World-in-a-Pie), a generic, domain-agnostic storage engine. WIP doesn't know what a bank transaction is. It knows what a terminology is (controlled vocabulary), what a template is (schema with typed fields), and what a document is (validated data conforming to a template). It handles identity resolution, versioning, referential integrity, and real-time sync to PostgreSQL for SQL analytics. It runs on a Raspberry Pi.
 
 The experiment tested two theses simultaneously:
 
