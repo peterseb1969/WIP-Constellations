@@ -39,7 +39,7 @@ export interface ParsedUbsCsv {
  */
 export function extractCounterparty(desc1: string): { name: string; address: string } {
   if (!desc1) return { name: '', address: '' }
-  const parts = desc1.split(';').map((s) => s.trim().replace(/^"|"$/g, ''))
+  const parts = desc1.split(';').map((s) => s.trim())
   return {
     name: parts[0] || '',
     address: parts.slice(1).filter(Boolean).join(', '),

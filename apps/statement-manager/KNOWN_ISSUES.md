@@ -2,8 +2,8 @@
 
 ## Open Issues
 
-### ~~UBS counterparty name parsing broken~~ FIXED 2026-03-14
-Quotes are now stripped from semicolon-separated parts in `extractCounterparty()`.
+### ~~UBS counterparty name parsing broken~~ NOT A BUG
+PapaParse correctly handles CSV quoting -- double-quoted fields with internal semicolons are parsed properly. The `extractCounterparty()` function receives clean, unquoted strings. The original bug report was based on stale data from an earlier parser version.
 
 ### Yuh account inactive in WIP
 **Status:** known

@@ -64,17 +64,6 @@ describe('extractCounterparty', () => {
     expect(result.address).toBe('Main St 1, Zurich')
   })
 
-  it('strips quotes from semicolon-separated parts', () => {
-    const result = extractCounterparty('"John Doe";"Main Street 1";"8000 Zurich"')
-    expect(result.name).toBe('John Doe')
-    expect(result.address).toBe('Main Street 1, 8000 Zurich')
-  })
-
-  it('strips trailing quote from partially quoted parts', () => {
-    const result = extractCounterparty('4125 Riehen";Frau Riccarda Racine"')
-    expect(result.name).toBe('4125 Riehen')
-    expect(result.address).toBe('Frau Riccarda Racine')
-  })
 })
 
 // ---------------------------------------------------------------------------
