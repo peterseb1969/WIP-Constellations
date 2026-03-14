@@ -179,8 +179,10 @@ function ColumnFilterPopover({
   }
 
   return (
-    <div ref={ref} className="absolute left-0 top-full mt-1 z-30 bg-surface border border-gray-200 rounded-lg shadow-lg p-3 w-56">
-      <div className="flex items-center justify-between mb-2">
+    <div ref={ref} className="absolute left-0 top-full mt-1 z-30 bg-surface border border-gray-200 rounded-lg shadow-lg p-3 min-w-[220px]"
+      style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+    >
+      <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-text-muted">Filter: {column.label}</span>
         {filter && (
           <button onClick={() => { onClear(); onClose() }} className="text-xs text-danger hover:underline">
@@ -192,7 +194,7 @@ function ColumnFilterPopover({
       <select
         value={operator}
         onChange={(e) => setOperator(e.target.value)}
-        className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+        className="block w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
       >
         {ops.map((op) => (
           <option key={op.value} value={op.value}>{op.label}</option>
@@ -203,7 +205,7 @@ function ColumnFilterPopover({
         <select
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="block w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
         >
           <option value="">Select...</option>
           {enumOpts.map((o) => (
@@ -217,7 +219,7 @@ function ColumnFilterPopover({
           type="date"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="block w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
       )}
 
@@ -228,7 +230,7 @@ function ColumnFilterPopover({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Value..."
-          className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="block w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
       )}
 
@@ -238,14 +240,14 @@ function ColumnFilterPopover({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Value..."
-          className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="block w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
           onKeyDown={(e) => e.key === 'Enter' && handleApply()}
         />
       )}
 
       <button
         onClick={handleApply}
-        className="w-full px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
+        className="block w-full px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
       >
         Apply
       </button>
