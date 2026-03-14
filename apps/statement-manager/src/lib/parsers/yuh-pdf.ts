@@ -281,8 +281,8 @@ function extractCounterpartyName(
 function guessTransactionType(typeLine: string): string {
   const t = typeLine.toLowerCase()
   if (t.includes('zahlung per debitkarte')) return 'DEBIT_CARD'
-  if (t.includes('zahlung von')) return 'CREDIT_TRANSFER'
-  if (t.includes('zahlung an')) return 'BANK_TRANSFER'
+  if (t.includes('zahlung von')) return 'BANK_TRANSFER_IN'
+  if (t.includes('zahlung an')) return 'BANK_TRANSFER_OUT'
   if (t.includes('hrungsumtausch') || t.includes('währungsumtausch')) return 'CURRENCY_EXCHANGE'
   return 'OTHER'
 }
