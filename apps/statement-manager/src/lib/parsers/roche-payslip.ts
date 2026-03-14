@@ -1,5 +1,4 @@
-// @ts-expect-error pdf-parse has no type declarations
-import pdfParse from 'pdf-parse'
+import { extractPdfText } from './pdf-extract'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -123,18 +122,17 @@ function parseAmount(s: string): { value: number; isDeduction: boolean } {
 /**
  * Parse a single payslip line from the raw text.
  *
- * Observed patterns:
- *   "1001Monthly base salary                16,417.00 "
- *   "/411AHV contribution            16,457.00   5.30 %     872.20-"
- *   "2004Child allowance                302.50    1       302.50 "
- *   "4301Roche Connect EE             1,641.00-"
- *   "4103Applause Award Gross-up   40.00 %       40.00 "
+ * Observed patterns (pdfjs-dist output — space-separated):
+ *   "1001 Monthly base salary 16,417.00"
+ *   "/411 AHV contribution 16,457.00 5.30 % 872.20-"
+ *   "2004 Child allowance 302.50 1 302.50"
+ *   "4301 Roche Connect EE 1,641.00-"
  *
- * Code is either /NNN or NNNN at the start.
+ * Code is either /NNN or NNNN at the start, followed by space.
  * Then description text, then numeric fields at the end.
  */
 
-const LINE_RE = /^(\/?\d{3,4})(.+)$/
+const LINE_RE = /^(\/?\d{3,4})\s+(.+)$/
 
 function parseLine(raw: string): RochePayslipLine | null {
   const m = LINE_RE.exec(raw.trim())
@@ -223,13 +221,13 @@ function parseLine(raw: string): RochePayslipLine | null {
 // ---------------------------------------------------------------------------
 
 function extractHeader(englishText: string): RochePayslipHeader {
-  const empMatch = englishText.match(/Employee Nr\.(\d+)/)
+  const empMatch = englishText.match(/Employee Nr\.\s*(\d+)/)
   const siMatch = englishText.match(/SI Number\n([\d.]+)/)
   const capMatch = englishText.match(/(\d+)%/)
-  const payDateMatch = englishText.match(/Pay date(\d{2}\.\d{2}\.\d{4})/)
+  const payDateMatch = englishText.match(/Pay date\s*(\d{2}\.\d{2}\.\d{4})/)
   const periodMatch = englishText.match(/(\w+ \d{4})Pay period/)
   const companyMatch = englishText.match(/(.+?)Company/)
-  const nameMatch = englishText.match(/(?:Mr|Mrs|Ms)\s+\n(.+?)\n/)
+  const nameMatch = englishText.match(/(?:Mr|Mrs|Ms)\s*\n(.+?)\n/)
 
   const payDateRaw = payDateMatch?.[1] ?? ''
   const [dd, mm, yyyy] = payDateRaw.split('.')
@@ -290,12 +288,12 @@ function extractSummary(
 // ---------------------------------------------------------------------------
 
 export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRochePayslip> {
-  const data = await pdfParse(Buffer.from(buffer))
-  const rawText: string = data.text
+  const data = await extractPdfText(buffer)
+  const rawText = data.text
 
   // Split English / German — German starts with "Herr" or "Frau" after the English section
-  // The English section starts with "Mr" or "Mrs"
-  const germanStart = rawText.search(/\n(?:Herr|Frau)\s/)
+  // pdfjs-dist puts "Herr" on its own line
+  const germanStart = rawText.search(/\n(?:Herr|Frau)\s*\n/)
   const englishText = germanStart > 0 ? rawText.substring(0, germanStart) : rawText
 
   const header = extractHeader(englishText)
@@ -311,7 +309,7 @@ export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRoch
     if (!trimmed) continue
 
     // Section markers
-    if (trimmed === 'Earnings' || trimmed.startsWith('CodeText')) {
+    if (trimmed === 'Earnings' || trimmed.startsWith('Code Text') || trimmed.startsWith('CodeText')) {
       inEarnings = true
       inNonCash = false
       continue
@@ -321,7 +319,7 @@ export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRoch
       inEarnings = false
       continue
     }
-    if (trimmed.startsWith('TextCode') || trimmed.startsWith('Bank Details') || trimmed.startsWith('Message')) {
+    if (trimmed.startsWith('TextCode') || trimmed.startsWith('Text Code') || trimmed.startsWith('Bank Details') || trimmed.startsWith('Message')) {
       // Non-cash header row or bank section — skip header, keep parsing non-cash items
       if (trimmed.startsWith('Bank Details') || trimmed.startsWith('Message')) {
         inNonCash = false

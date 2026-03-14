@@ -1,5 +1,4 @@
-// @ts-expect-error pdf-parse has no type declarations
-import pdfParse from 'pdf-parse'
+import { extractPdfText } from './pdf-extract'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -40,7 +39,7 @@ export interface ParsedYuhPdf {
 }
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants — adapted for pdfjs-dist output (spaces preserved, proper Unicode)
 // ---------------------------------------------------------------------------
 
 /** Boilerplate footer text that repeats on every page — strip it */
@@ -57,24 +56,25 @@ const BOILERPLATE_PATTERNS = [
   /^Vom \d{2}\.\d{2}\.\d{4} bis/,
   /^Herrn?\s/,
   /^IBAN\s*:/,
-  /^\d{4}\s+\w+$/,   // address zip+city on its own line (after name lines in footer)
+  /^\d{4}\s+\w+$/,   // address zip+city line in footer
 ]
 
-/** Matches a date at the start of a line: DD.MM.YYYY */
-const DATE_LINE_RE = /^(\d{2}\.\d{2}\.\d{4})(.+)$/
+/** Matches a date at the start of a line: DD.MM.YYYY followed by space+text */
+const DATE_LINE_RE = /^(\d{2}\.\d{2}\.\d{4})\s+(.+)$/
 
-/** The glued last line: ref(10) + amount + valutaDate + saldo */
-const LAST_LINE_RE = /^(\d{10})(-?\d[\d']*\.\d{2})(\d{2}\.\d{2}\.\d{4})(-?\d[\d']*\.\d{2})$/
+/** The last line of a transaction block (pdfjs-dist: space-separated)
+ *  ref(10) amount valutaDate saldo */
+const LAST_LINE_RE = /^(\d{10})\s+(-?[\d']+\.\d{2})\s+(\d{2}\.\d{2}\.\d{4})\s+(-?[\d']+\.\d{2})$/
 
-/** Currency section header: "Kontoauszug inCHF" (no space) */
-const SECTION_HEADER_RE = /^Kontoauszug in(CHF|USD|EUR)$/
+/** Currency section header: "Kontoauszug in CHF" (with space in pdfjs-dist) */
+const SECTION_HEADER_RE = /^Kontoauszug in\s*(CHF|USD|EUR)$/
 
-/** Column header line (glued) — skip it */
-const COLUMN_HEADER_RE = /^DATUMINFORMATION/
+/** Column header line — skip it */
+const COLUMN_HEADER_RE = /^DATUM\s+INFORMATION/
 
 /** Opening / closing balance entries — not transactions */
-const OPENING_RE = /^(\d{2}\.\d{2}\.\d{4})Anfangsbestand\s+/
-const CLOSING_RE = /^(\d{2}\.\d{2}\.\d{4})Schlussbilanz/
+const OPENING_RE = /^(\d{2}\.\d{2}\.\d{4})\s+Anfangsbestand/
+const CLOSING_RE = /^(\d{2}\.\d{2}\.\d{4})\s+Schlussbilanz/
 
 /** Summary lines in section header */
 const SUMMARY_RE = /^(Saldo per|Total Belastung|Total Gutschrift)/
@@ -145,7 +145,7 @@ interface RawBlock {
   saldo: number           // signed
 }
 
-function parseTransactionBlocks(lines: string[], _currency: string): RawBlock[] {
+function parseTransactionBlocks(lines: string[]): RawBlock[] {
   const blocks: RawBlock[] = []
   let current: { date: string; typeLine: string; middleLines: string[] } | null = null
 
@@ -175,10 +175,9 @@ function parseTransactionBlocks(lines: string[], _currency: string): RawBlock[] 
       continue
     }
 
-    // Check if this starts a new transaction block (date glued to type)
+    // Check if this starts a new transaction block (date + space + type)
     const dateMatch = DATE_LINE_RE.exec(line)
     if (dateMatch) {
-      // If we had an open block without a last-line match, discard it (shouldn't happen)
       current = {
         date: dateMatch[1],
         typeLine: dateMatch[2].trim(),
@@ -200,17 +199,11 @@ function parseTransactionBlocks(lines: string[], _currency: string): RawBlock[] 
 // Sign determination + detail extraction
 // ---------------------------------------------------------------------------
 
-function determineSign(
-  block: RawBlock,
-  previousSaldo: number,
-): number {
-  // Balance diff tells us the true sign
+function determineSign(block: RawBlock, previousSaldo: number): number {
   const diff = block.saldo - previousSaldo
-  // The amount from the regex is unsigned — apply sign from balance diff
   if (Math.abs(Math.abs(diff) - block.amount) < 0.015) {
     return diff < 0 ? -block.amount : block.amount
   }
-  // Fallback: use transaction type hint
   const type = block.typeLine.toLowerCase()
   if (type.includes('zahlung per debitkarte') || type.includes('zahlung an')) {
     return -block.amount
@@ -218,7 +211,6 @@ function determineSign(
   if (type.includes('zahlung von')) {
     return block.amount
   }
-  // Currency exchange: if saldo went down, it's a debit in this section
   if (diff < 0) return -block.amount
   return block.amount
 }
@@ -243,10 +235,10 @@ function extractExchangeInfo(
   lines: string[],
   typeLine: string,
 ): { rate: number | null; targetCurrency: string | null } {
-  if (!typeLine.toLowerCase().includes('hrungsumtausch')) {
+  if (!typeLine.toLowerCase().includes('hrungsumtausch') &&
+      !typeLine.toLowerCase().includes('währungsumtausch')) {
     return { rate: null, targetCurrency: null }
   }
-  // Lines like: "CHF - EUR" and "1 CHF = 1.06373 EUR"
   for (const l of lines) {
     const m = l.match(/1\s+([A-Z]{3})\s*=\s*([\d.]+)\s+([A-Z]{3})/)
     if (m) {
@@ -260,24 +252,21 @@ function extractCounterpartyName(
   lines: string[],
   typeLine: string,
 ): { name: string | null; address: string | null } {
-  // For card payments: skip the card line, next line is merchant name
-  // For transfers: first middle line is the person/company name
   const isCard = typeLine.toLowerCase().includes('debitkarte')
-  const isExchange = typeLine.toLowerCase().includes('hrungsumtausch')
+  const isExchange = typeLine.toLowerCase().includes('hrungsumtausch') ||
+                     typeLine.toLowerCase().includes('währungsumtausch')
 
   if (isExchange) return { name: null, address: null }
 
   const nameLines: string[] = []
-  let skipNext = isCard // skip the "xxxx NNNN -" line for card payments
+  let skipNext = isCard
 
   for (const l of lines) {
     if (skipNext && /^xxxx\s+\d{4}/.test(l)) {
       skipNext = false
       continue
     }
-    // Stop at IBAN lines or numeric-only lines (postal codes etc. that are part of address)
     if (/^[A-Z]{2}\d{2}[\dA-Z]+$/.test(l)) continue
-    // Stop at lines that look like bank names for transfers
     if (/^[A-Z\s.]+(?:BANK|A\.G\.)/.test(l)) continue
     nameLines.push(l)
   }
@@ -294,7 +283,7 @@ function guessTransactionType(typeLine: string): string {
   if (t.includes('zahlung per debitkarte')) return 'DEBIT_CARD'
   if (t.includes('zahlung von')) return 'CREDIT_TRANSFER'
   if (t.includes('zahlung an')) return 'BANK_TRANSFER'
-  if (t.includes('hrungsumtausch')) return 'CURRENCY_EXCHANGE'
+  if (t.includes('hrungsumtausch') || t.includes('währungsumtausch')) return 'CURRENCY_EXCHANGE'
   return 'OTHER'
 }
 
@@ -303,7 +292,7 @@ function guessTransactionType(typeLine: string): string {
 // ---------------------------------------------------------------------------
 
 export async function parseYuhPdf(buffer: ArrayBuffer): Promise<ParsedYuhPdf> {
-  const data = await pdfParse(Buffer.from(buffer))
+  const data = await extractPdfText(buffer)
   const rawText = data.text
   const header = extractHeader(rawText)
 
@@ -332,10 +321,9 @@ export async function parseYuhPdf(buffer: ArrayBuffer): Promise<ParsedYuhPdf> {
   const transactions: YuhTransaction[] = []
 
   for (const section of sections) {
-    const blocks = parseTransactionBlocks(section.lines, section.currency)
+    const blocks = parseTransactionBlocks(section.lines)
 
     // Get opening balance for sign determination
-    // Look for "Saldo per DD.MM.YYYY amount" in the section lines
     let previousSaldo = 0
     const saldoMatch = section.lines.find((l) => l.startsWith('Saldo per'))
     if (saldoMatch) {
@@ -367,9 +355,9 @@ export async function parseYuhPdf(buffer: ArrayBuffer): Promise<ParsedYuhPdf> {
         exchangeRate: rate,
         exchangeTargetCurrency: targetCurrency,
         rawBlock: [
-          `${block.bookingDate}${block.typeLine}`,
+          `${block.bookingDate} ${block.typeLine}`,
           ...block.middleLines,
-          `${block.reference}${block.amount}${block.valutaDate}${block.saldo}`,
+          `${block.reference} ${block.amount} ${block.valutaDate} ${block.saldo}`,
         ].join('\n'),
       })
     }
