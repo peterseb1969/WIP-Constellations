@@ -21,7 +21,7 @@ export async function loadConfig(): Promise<AppConfig> {
     if (res.ok) {
       const json = await res.json()
       _config = {
-        wipApiUrl: json.wipApiUrl || '',
+        wipApiUrl: json.wipApiUrl || window.location.origin,
         wipApiKey: json.wipApiKey || '',
         basePath: json.basePath || '/',
       }
