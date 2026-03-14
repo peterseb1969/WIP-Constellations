@@ -258,6 +258,7 @@ export function AccountsPage() {
   const { data, isLoading, error } = useDocuments({
     template_value: 'FIN_ACCOUNT',
     page_size: 50,
+    latest_only: true,
   })
 
   const accounts = data?.items ?? []

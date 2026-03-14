@@ -138,6 +138,7 @@ export function PayslipsPage() {
   const { data, isLoading, error } = useDocuments({
     template_value: 'FIN_PAYSLIP',
     page_size: 50,
+    latest_only: true,
   })
 
   const payslips = data?.items ?? []

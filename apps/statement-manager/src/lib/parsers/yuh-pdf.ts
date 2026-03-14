@@ -1,3 +1,4 @@
+// @ts-expect-error pdf-parse has no type declarations
 import pdfParse from 'pdf-parse'
 
 // ---------------------------------------------------------------------------
@@ -144,7 +145,7 @@ interface RawBlock {
   saldo: number           // signed
 }
 
-function parseTransactionBlocks(lines: string[], currency: string): RawBlock[] {
+function parseTransactionBlocks(lines: string[], _currency: string): RawBlock[] {
   const blocks: RawBlock[] = []
   let current: { date: string; typeLine: string; middleLines: string[] } | null = null
 
@@ -307,7 +308,7 @@ export async function parseYuhPdf(buffer: ArrayBuffer): Promise<ParsedYuhPdf> {
   const header = extractHeader(rawText)
 
   // Split into lines, strip boilerplate
-  const allLines = rawText.split('\n').map((l) => l.trim()).filter(Boolean)
+  const allLines = rawText.split('\n').map((l: string) => l.trim()).filter(Boolean)
   const cleanLines = stripBoilerplate(allLines)
 
   // Split into currency sections
