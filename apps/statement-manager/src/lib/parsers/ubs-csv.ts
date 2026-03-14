@@ -39,7 +39,7 @@ export interface ParsedUbsCsv {
  */
 export function extractCounterparty(desc1: string): { name: string; address: string } {
   if (!desc1) return { name: '', address: '' }
-  const parts = desc1.split(';').map((s) => s.trim())
+  const parts = desc1.split(';').map((s) => s.trim().replace(/^"|"$/g, ''))
   return {
     name: parts[0] || '',
     address: parts.slice(1).filter(Boolean).join(', '),
@@ -93,12 +93,12 @@ export function guessTransactionType(tx: UbsTransaction): string {
   if (d2.includes('debitkarte') || d2.includes('zahlung debitkarte')) return 'DEBIT_CARD'
   if (d2.includes('e-bill') || d2.includes('ebill')) return 'E_BILL'
   if (d2.includes('dauerauftrag')) return 'STANDING_ORDER'
-  if (d2.includes('gutschrift') || d2.includes('e-banking-gutschrift')) return 'CREDIT_TRANSFER'
-  if (d2.includes('vergütung') || d2.includes('e-banking-vergütungsauftrag')) return 'BANK_TRANSFER'
+  if (d2.includes('gutschrift') || d2.includes('e-banking-gutschrift')) return 'BANK_TRANSFER_IN'
+  if (d2.includes('vergütung') || d2.includes('e-banking-vergütungsauftrag')) return 'BANK_TRANSFER_OUT'
   if (d2.includes('währung') || tx.description1.toLowerCase().includes('währung')) return 'CURRENCY_EXCHANGE'
   if (tx.description1.toLowerCase().includes('saldo dienstleistungspreis')) return 'FEE'
-  if (tx.description1.toLowerCase().includes('zins')) return 'INTEREST'
-  if (d2.includes('lohn') || d2.includes('salär') || d2.includes('gehalt')) return 'SALARY'
+  if (tx.description1.toLowerCase().includes('zins')) return 'BANK_TRANSFER_IN'
+  if (d2.includes('lohn') || d2.includes('salär') || d2.includes('gehalt')) return 'BANK_TRANSFER_IN'
   return 'OTHER'
 }
 

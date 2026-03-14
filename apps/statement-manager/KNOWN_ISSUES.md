@@ -2,11 +2,8 @@
 
 ## Open Issues
 
-### UBS counterparty name parsing broken
-**Status:** known
-**Severity:** medium
-**Description:** UBS CSV counterparty names have trailing quotes and truncated addresses. Examples: `4125 Riehen"`, `Frau Riccarda Racine"`. The `extractCounterparty()` function splits on `;` but doesn't clean up quote artifacts from the pipe-delimited description field.
-**Context:** Visible in imported transaction data. Needs investigation with real UBS CSV samples to understand the exact quoting/escaping pattern.
+### ~~UBS counterparty name parsing broken~~ FIXED 2026-03-14
+Quotes are now stripped from semicolon-separated parts in `extractCounterparty()`.
 
 ### Yuh account inactive in WIP
 **Status:** known
@@ -26,11 +23,8 @@
 **Description:** Some PDF files appear greyed out in the macOS file selection dialog, particularly files synced from Google Drive. The `accept=".csv,.pdf"` attribute is correct. Copying files to a local folder and re-syncing sometimes resolves it.
 **Context:** This is a macOS/Google Drive interaction issue, not an app bug. Importing files directly from Google Drive (via the Finder sidebar) works. Drag-and-drop also works as a workaround.
 
-### UBS CSV transaction types not in FIN_TRANSACTION_TYPE
-**Status:** known
-**Severity:** low
-**Description:** The UBS CSV parser produces `CREDIT_TRANSFER`, `BANK_TRANSFER`, `INTEREST`, and `SALARY` transaction types, which are not in the FIN_TRANSACTION_TYPE terminology. These will fail WIP validation. The Yuh parser was already fixed (CREDIT_TRANSFER --> BANK_TRANSFER_IN, BANK_TRANSFER --> BANK_TRANSFER_OUT), but the UBS parser still uses the old values.
-**Context:** Needs the same mapping fix applied to `ubs-csv.ts` `guessTransactionType()`.
+### ~~UBS CSV transaction types not in FIN_TRANSACTION_TYPE~~ FIXED 2026-03-14
+Mapped CREDIT_TRANSFER to BANK_TRANSFER_IN, BANK_TRANSFER to BANK_TRANSFER_OUT, INTEREST and SALARY to BANK_TRANSFER_IN.
 
 ## Deferred
 

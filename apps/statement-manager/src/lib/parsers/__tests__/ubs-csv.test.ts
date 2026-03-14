@@ -63,6 +63,18 @@ describe('extractCounterparty', () => {
     expect(result.name).toBe('John Doe')
     expect(result.address).toBe('Main St 1, Zurich')
   })
+
+  it('strips quotes from semicolon-separated parts', () => {
+    const result = extractCounterparty('"John Doe";"Main Street 1";"8000 Zurich"')
+    expect(result.name).toBe('John Doe')
+    expect(result.address).toBe('Main Street 1, 8000 Zurich')
+  })
+
+  it('strips trailing quote from partially quoted parts', () => {
+    const result = extractCounterparty('4125 Riehen";Frau Riccarda Racine"')
+    expect(result.name).toBe('4125 Riehen')
+    expect(result.address).toBe('Frau Riccarda Racine')
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -148,6 +160,22 @@ describe('guessTransactionType', () => {
 
   it('detects standing order', () => {
     expect(guessTransactionType(makeTx({ description2: 'Dauerauftrag' }))).toBe('STANDING_ORDER')
+  })
+
+  it('detects incoming transfer (gutschrift)', () => {
+    expect(guessTransactionType(makeTx({ description2: 'e-banking-Gutschrift' }))).toBe('BANK_TRANSFER_IN')
+  })
+
+  it('detects outgoing transfer (vergütung)', () => {
+    expect(guessTransactionType(makeTx({ description2: 'e-banking-Vergütungsauftrag' }))).toBe('BANK_TRANSFER_OUT')
+  })
+
+  it('detects salary as BANK_TRANSFER_IN', () => {
+    expect(guessTransactionType(makeTx({ description2: 'Lohnzahlung' }))).toBe('BANK_TRANSFER_IN')
+  })
+
+  it('detects interest as BANK_TRANSFER_IN', () => {
+    expect(guessTransactionType(makeTx({ description1: 'Zins per 31.12.2025' }))).toBe('BANK_TRANSFER_IN')
   })
 
   it('detects fee from description1', () => {
