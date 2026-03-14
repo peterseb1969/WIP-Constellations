@@ -15,13 +15,13 @@ See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
 This is a personal experiment, not a product. The app supports a random combination of bank statement formats and payslip layouts that happened to be useful for testing. The parsers are brittle by design: they work for a specific selection of input files and will almost certainly fail on yours. Nothing here is intended to be reusable, general-purpose, or production-ready. If you find the *approach* interesting, look at the process and the WIP platform — not the app code.
 
 > [!CAUTION]
-> **Data Privacy: Cloud AI queries send your personal data off-device.**
+> **Data Privacy — only relevant if you connect a cloud AI via MCP.**
 >
-> If you use a cloud AI (Claude, ChatGPT, etc.) to query your WIP data via the MCP server, your personal data leaves your machine. Transaction amounts, counterparty names, IBANs, salary details — whatever the AI needs to answer your question is sent to the AI provider's servers for processing.
+> WIP and the constellation apps run entirely on your local machine. Without MCP, your data never leaves your network — the apps talk to WIP on `localhost`, no external calls.
 >
-> WIP stores your data locally (your Raspberry Pi, your server, your machine). That sovereignty is real *at rest*. But it is broken *in transit* every time a cloud AI queries it. This is not a bug — it is how cloud AI works. The people most attracted to "personal data on my own hardware" are exactly the people who should understand this tradeoff.
+> The privacy concern arises **only** when you connect a cloud AI (Claude, ChatGPT, etc.) to WIP's MCP server to query your data conversationally. In that scenario, whatever data the AI needs to answer your question — transaction amounts, counterparty names, IBANs, salary details — is sent to the AI provider's servers for processing.
 >
-> The structural solution exists: local AI models (via Ollama or similar) speak the same MCP protocol. When local models are capable enough for multi-tool reasoning, the data never leaves your network. WIP's architecture is ready for that today. Until then, cloud AI queries mean your data travels.
+> If you don't use MCP with a cloud AI, this does not apply to you. If you do, the tradeoff is: local data sovereignty at rest, cloud processing in transit. The structural solution exists — local AI models (via Ollama or similar) speak the same MCP protocol and keep everything on-device. WIP's architecture is ready for that today.
 >
 > **This should be a conscious choice, not an invisible default.**
 
