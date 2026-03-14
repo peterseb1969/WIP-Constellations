@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { ArrowLeftRight, Settings2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useQueryDocuments, useTemplateByValue } from '@wip/react'
+import { ArrowLeftRight, Settings2, Search, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useQueryDocuments, useDocuments, useTemplateByValue } from '@wip/react'
 import type { Document, QueryFilter } from '@wip/client'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
@@ -95,19 +95,69 @@ export function TransactionsPage() {
   const [columns, setColumns] = useState(buildDefaultColumns)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [accountId, setAccountId] = useState('')
+  const [txType, setTxType] = useState('')
   const [page, setPage] = useState(1)
   const pageSize = 25
 
   const { data: templateData } = useTemplateByValue('FIN_TRANSACTION')
   const templateId = templateData?.template_id
 
+  // Load accounts for the filter dropdown
+  const { data: accountsData } = useDocuments({
+    template_value: 'FIN_ACCOUNT',
+    page_size: 50,
+    latest_only: true,
+  })
+  const accounts = accountsData?.items ?? []
+
+  // Transaction type values
+  const txTypes = [
+    { value: 'DEBIT_CARD', label: 'Debit Card' },
+    { value: 'BANK_TRANSFER_IN', label: 'Transfer In' },
+    { value: 'BANK_TRANSFER_OUT', label: 'Transfer Out' },
+    { value: 'STANDING_ORDER', label: 'Standing Order' },
+    { value: 'E_BILL', label: 'E-Bill' },
+    { value: 'CURRENCY_EXCHANGE', label: 'Currency Exchange' },
+    { value: 'ATM_WITHDRAWAL', label: 'ATM' },
+    { value: 'CREDIT_CARD_PAYMENT', label: 'Credit Card' },
+    { value: 'TWINT', label: 'TWINT' },
+    { value: 'FEE', label: 'Fee' },
+    { value: 'OTHER', label: 'Other' },
+  ]
+
+  const hasFilters = searchText || dateFrom || dateTo || accountId || txType
+
+  function clearFilters() {
+    setSearchText('')
+    setDateFrom('')
+    setDateTo('')
+    setAccountId('')
+    setTxType('')
+    setPage(1)
+  }
+
   const filters = useMemo(() => {
     const f: QueryFilter[] = []
     if (searchText.trim()) {
       f.push({ field: 'data.description', operator: 'regex', value: searchText.trim() })
     }
+    if (dateFrom) {
+      f.push({ field: 'data.booking_date', operator: 'gte', value: dateFrom })
+    }
+    if (dateTo) {
+      f.push({ field: 'data.booking_date', operator: 'lte', value: dateTo })
+    }
+    if (accountId) {
+      f.push({ field: 'data.account', operator: 'eq', value: accountId })
+    }
+    if (txType) {
+      f.push({ field: 'data.transaction_type', operator: 'eq', value: txType })
+    }
     return f
-  }, [searchText])
+  }, [searchText, dateFrom, dateTo, accountId, txType])
 
   const { data, isLoading, error } = useQueryDocuments(
     {
@@ -148,8 +198,8 @@ export function TransactionsPage() {
       </div>
 
       {/* Filters bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
@@ -162,7 +212,53 @@ export function TransactionsPage() {
             className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           />
         </div>
-        <div className="relative">
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="From"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          placeholder="To"
+        />
+        <select
+          value={accountId}
+          onChange={(e) => { setAccountId(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        >
+          <option value="">All accounts</option>
+          {accounts.map((a) => (
+            <option key={a.document_id} value={a.document_id}>
+              {(a.data.institution as string) ?? ''} — {(a.data.label as string) ?? (a.data.iban as string) ?? a.document_id}
+            </option>
+          ))}
+        </select>
+        <select
+          value={txType}
+          onChange={(e) => { setTxType(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        >
+          <option value="">All types</option>
+          {txTypes.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1 px-3 py-2 text-sm text-text-muted hover:text-danger"
+            title="Clear all filters"
+          >
+            <X size={14} />
+            Clear
+          </button>
+        )}
+        <div className="relative ml-auto">
           <button
             onClick={() => setShowColumnSelector(!showColumnSelector)}
             className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md text-sm text-text-muted hover:bg-gray-50"
