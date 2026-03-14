@@ -48,6 +48,7 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Client Library Spec](docs/WIP_ClientLibrary_Spec.md) | @wip/client and @wip/react specification |
 | [AI-Assisted Development](docs/AI-Assisted-Development.md) | The phased development process |
 | [Lessons Learned](LESSONS_LEARNED.md) | Living record of experiment observations |
+| [Field Report](WIP_Journey.md) | Day-by-day account of the experiment — start here to follow along |
 
 ## Prerequisites
 
