@@ -622,18 +622,19 @@ export function ImportPage() {
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
-          const buffer = e.target?.result as ArrayBuffer
-          const { text } = await extractPdfText(buffer)
+          const original = e.target?.result as ArrayBuffer
+          // Clone buffer — pdfjs-dist detaches it on first use
+          const { text } = await extractPdfText(original.slice(0))
           const pdfType = detectPdfType(text)
           if (!pdfType) {
             setParseError('Could not identify this PDF. Expected a Yuh bank statement or Roche payslip.')
             return
           }
           if (pdfType === 'yuh-pdf') {
-            const result = await parseYuhPdf(buffer)
+            const result = await parseYuhPdf(original.slice(0))
             setParsed({ type: 'yuh-pdf', data: result })
           } else {
-            const result = await parseRochePayslip(buffer)
+            const result = await parseRochePayslip(original.slice(0))
             setParsed({ type: 'roche-payslip', data: result })
           }
         } catch (err) {
@@ -780,7 +781,7 @@ export function ImportPage() {
                 Choose File
                 <input
                   type="file"
-                  accept=".csv,.pdf,.PDF"
+                  accept=".csv,.pdf,.PDF,application/pdf,text/csv"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
