@@ -283,6 +283,43 @@ Statement Manager — hard numbers:
 
 ---
 
+## The Platform Underneath
+
+The Statement Manager's 3,514 lines of code didn't build themselves in isolation. They stand on top of WIP — a platform that, as of Day 2, looks like this:
+
+| Metric | Value |
+|---|---|
+| Total platform source | 106,384 lines across 530 files |
+| Languages | 7 (Python, TypeScript, Vue, Shell, YAML, Markdown, Dockerfile) |
+| Git commits | 346 over 44 days |
+| Contributors | 1 human + Claude |
+| Documentation | 17,344 lines (nearly a third of the Python codebase) |
+| Test-to-code ratio | 0.75 (Python) — 27,703 lines of tests against 36,676 lines of source |
+
+The five backend services that the Statement Manager depends on:
+
+| Service | Lines | What it does |
+|---|---|---|
+| Document Store | 10,191 | Stores, versions, and queries all documents |
+| Template Store | 5,642 | Manages schemas with field validation |
+| Def Store | 7,275 | Manages terminologies and controlled vocabularies |
+| Registry | 6,019 | Identity resolution, synonyms, namespace management |
+| Reporting Sync | 6,238 | Real-time sync to PostgreSQL for SQL analytics |
+
+Plus the interfaces the app consumes directly:
+
+| Interface | Lines | Role |
+|---|---|---|
+| @wip/client | 3,618 | TypeScript API client (runtime) |
+| @wip/react | 807 | TanStack Query hooks (runtime) |
+| MCP server | 3,517 | AI development tools (build time) |
+
+The Statement Manager is 3.3% of the platform's size but leverages 100% of its capabilities. That's the leverage ratio that makes building an app in 6.5 hours possible — not because the AI is fast at writing code (it is), but because 106,000 lines of platform handle validation, versioning, identity resolution, term management, reference integrity, reporting sync, authentication, and file storage. The app doesn't implement any of these. It just uses them.
+
+This also explains why the constellation model has compounding returns: the second app (Receipt Scanner) will be built on the same 106K lines. It won't need to re-implement validation or versioning. It will reuse the same terminologies and reference the same templates. The platform cost is paid once; each app pays only its own domain logic.
+
+**Velocity context:** WIP was built at ~2,400 lines/day over 44 days. The Statement Manager was built at ~540 lines/hour over 6.5 hours. The app-building velocity is higher because the hard infrastructure problems are already solved.
+
 ## Day 1 vs Day 2: The Measurement
 
 | Metric | Day 1 | Day 2 |
