@@ -436,7 +436,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
             const msg = r.error ?? 'Unknown error'
             // Duplicate version = already imported, count as success
             if (msg.includes('E11000') && msg.includes('version')) {
-              totalCreated++
+              linesCreated++
             } else {
               errors.push(msg)
             }

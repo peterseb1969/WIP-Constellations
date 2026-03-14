@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { ArrowLeftRight, Settings2, Search, ChevronLeft, ChevronRight, X, Filter, ChevronDown } from 'lucide-react'
+import { ArrowLeftRight, Settings2, Search, ChevronLeft, ChevronRight, X, Filter } from 'lucide-react'
 import { useQueryDocuments, useDocuments, useTemplateByValue } from '@wip/react'
 import type { Document, QueryFilter } from '@wip/client'
 import { formatCurrency, formatDate } from '@/lib/utils'

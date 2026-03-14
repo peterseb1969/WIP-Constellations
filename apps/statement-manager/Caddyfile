@@ -2,12 +2,14 @@
 	root * /srv
 	encode gzip
 
-	# Health endpoint
+	# Health endpoint — must be before the SPA fallback
 	handle /health {
 		respond "OK" 200
 	}
 
-	# SPA fallback — serve index.html for all non-file routes
-	try_files {path} /index.html
-	file_server
+	# SPA fallback — serve static files, fall back to index.html
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }
