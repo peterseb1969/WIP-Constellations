@@ -122,7 +122,7 @@ By the end of the day:
 **AI configuration:**
 - 1 CLAUDE.md master instruction file
 - 10 slash commands (`/explore`, `/design-model`, `/implement`, `/build-app`, `/improve`, `/export-model`, `/bootstrap`, `/wip-status`, `/add-app`, plus the WIP-status check)
-- 10 lessons learned entries (and counting)
+- 11 lessons learned entries (and counting)
 
 **In WIP:**
 - 5 terminologies with 51 terms
@@ -262,4 +262,14 @@ Combined with the seed files (data model reproducibility) and the lessons learne
 
 ---
 
-*This document will be updated as the experiment progresses. Current status: one app running, ten lessons learned, zero cross-app queries — but the most important lesson was the last one. We set out to build apps on a shared backend. We ended up building the foundation for a personal data assistant. The next phase tests whether that promise is real.*
+## Postscript: Why Day 2 Starts Over
+
+The Statement Manager works. It imports real Swiss bank data, displays transactions, manages accounts and payslips. So why rebuild it?
+
+Because it was built while the process was being invented. CLAUDE.md was revised mid-session. The UX gate didn’t exist when the UI was built. The documentation standard was defined after the app was running. The MCP server’s schemas were corrected during development. The client library grew new features in response to gaps. The Vite proxy configuration was discovered by accident, then documented as guidance.
+
+The app is a product of calibration, not of the calibrated instrument. Testing whether the process actually works — whether it produces a better app, faster, with fewer surprises — requires running it clean against a fresh build. Everything durable carries forward: the data model, the seed files, the guardrails, the commands, the lessons learned. Only the UI code is discarded — and that’s the cheapest, most ephemeral layer by design.
+
+Day 1 was calibration. Day 2 is the first real measurement.
+
+*See [Day 2: From One App to an Ecosystem](WIP_Journey_Day2.md) for what happens next.*
