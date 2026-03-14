@@ -10,20 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
     "@wip/client": "file:/Users/peter/Development/WorldInPie/libs/wip-client",
     "@wip/react": "file:/Users/peter/Development/WorldInPie/libs/wip-react",
-    "@tanstack/react-query": "^5.62.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "papaparse": "^5.5.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.6.0",
     "recharts": "^2.15.0",
-    "lucide-react": "^0.511.0",
-    "clsx": "^2.1.1",
     "tailwind-merge": "^3.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.0",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
