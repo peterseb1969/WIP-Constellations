@@ -49,6 +49,7 @@ function buildDefaultColumns(): ColumnDef[] {
     { key: 'value_date', label: 'Value Date', visible: false,
       render: (v) => v ? formatDate(v as string) : '—',
     },
+    { key: 'raw_details', label: 'Raw Details', visible: false },
     { key: 'source_reference', label: 'Source Ref', visible: false },
   ]
 }

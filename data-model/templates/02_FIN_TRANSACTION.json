@@ -22,6 +22,7 @@
     { "name": "counterparty_address", "label": "Counterparty Address", "type": "string", "mandatory": false },
     { "name": "counterparty_iban", "label": "Counterparty IBAN", "type": "string", "mandatory": false },
     { "name": "description", "label": "Description", "type": "string", "mandatory": false },
+    { "name": "raw_details", "label": "Raw Source Details", "type": "string", "mandatory": false },
     { "name": "reference_number", "label": "Payment Reference (QRR etc.)", "type": "string", "mandatory": false },
     { "name": "card_number", "label": "Card Number (masked)", "type": "string", "mandatory": false },
     { "name": "exchange_rate", "label": "Exchange Rate", "type": "number", "mandatory": false },

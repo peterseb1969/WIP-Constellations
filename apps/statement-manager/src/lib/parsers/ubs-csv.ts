@@ -206,9 +206,11 @@ export function toWipTransaction(
   if (reference) data.reference_number = reference
   if (card) data.card_number = card
 
-  // Build description from desc1 + desc2
-  const descParts = [tx.description1, tx.description2].filter(Boolean)
-  if (descParts.length > 0) data.description = descParts.join(' | ')
+  // Beschreibung2 = description (transaction method + user-provided labels)
+  if (tx.description2) data.description = tx.description2
+
+  // Beschreibung3 = raw_details (full string with references, IBANs, costs)
+  if (tx.description3) data.raw_details = tx.description3
 
   return data
 }
