@@ -1,0 +1,26 @@
+{
+  "code": "FIN_PAYSLIP",
+  "label": "Pay Slip",
+  "description": "Monthly pay slip summary from an employer",
+  "identity_fields": ["employer", "period"],
+  "metadata": {
+    "domain": "finance",
+    "category": "transaction",
+    "tags": ["personal-finance", "statement-manager"]
+  },
+  "fields": [
+    { "name": "employer", "label": "Employer Account", "type": "reference", "mandatory": true, "reference_type": "document", "target_templates": ["FIN_ACCOUNT"] },
+    { "name": "period", "label": "Pay Period (YYYY-MM)", "type": "string", "mandatory": true, "validation": { "pattern": "^\\d{4}-\\d{2}$" } },
+    { "name": "pay_date", "label": "Pay Date", "type": "date", "mandatory": true },
+    { "name": "currency", "label": "Currency", "type": "term", "mandatory": true, "terminology_ref": "FIN_CURRENCY" },
+    { "name": "gross", "label": "Gross Salary", "type": "number", "mandatory": true },
+    { "name": "net", "label": "Net Salary", "type": "number", "mandatory": true },
+    { "name": "payment_amount", "label": "Payment Amount", "type": "number", "mandatory": true },
+    { "name": "total_social_contributions", "label": "Total Social Contributions", "type": "number", "mandatory": false },
+    { "name": "total_pension_contributions", "label": "Total Pension Contributions", "type": "number", "mandatory": false },
+    { "name": "total_deductions", "label": "Total Deductions", "type": "number", "mandatory": false },
+    { "name": "employee_number", "label": "Employee Number", "type": "string", "mandatory": false },
+    { "name": "capacity_utilization", "label": "Capacity %", "type": "number", "mandatory": false, "semantic_type": "percentage" },
+    { "name": "target_iban", "label": "Payment Target IBAN", "type": "string", "mandatory": false }
+  ]
+}

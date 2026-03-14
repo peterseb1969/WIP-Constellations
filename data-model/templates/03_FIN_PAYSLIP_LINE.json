@@ -1,0 +1,21 @@
+{
+  "code": "FIN_PAYSLIP_LINE",
+  "label": "Pay Slip Line Item",
+  "description": "Individual earning or deduction line item from a pay slip",
+  "identity_fields": ["payslip", "code"],
+  "metadata": {
+    "domain": "finance",
+    "category": "transaction",
+    "tags": ["personal-finance", "statement-manager"]
+  },
+  "fields": [
+    { "name": "payslip", "label": "Parent Payslip", "type": "reference", "mandatory": true, "reference_type": "document", "target_templates": ["FIN_PAYSLIP"] },
+    { "name": "code", "label": "Line Item Code", "type": "string", "mandatory": true },
+    { "name": "description", "label": "Description", "type": "string", "mandatory": true },
+    { "name": "category", "label": "Line Category", "type": "term", "mandatory": true, "terminology_ref": "FIN_PAYSLIP_LINE_CATEGORY" },
+    { "name": "amount", "label": "Amount", "type": "number", "mandatory": true },
+    { "name": "basis", "label": "Basis Amount", "type": "number", "mandatory": false },
+    { "name": "rate", "label": "Rate / Percentage", "type": "number", "mandatory": false },
+    { "name": "is_deduction", "label": "Is Deduction?", "type": "boolean", "mandatory": true }
+  ]
+}

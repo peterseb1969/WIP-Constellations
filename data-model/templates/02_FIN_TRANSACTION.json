@@ -1,0 +1,30 @@
+{
+  "code": "FIN_TRANSACTION",
+  "label": "Financial Transaction",
+  "description": "A normalized financial transaction from any bank source (UBS CSV, Yuh PDF, etc.)",
+  "identity_fields": ["account", "source_reference"],
+  "metadata": {
+    "domain": "finance",
+    "category": "transaction",
+    "tags": ["personal-finance", "statement-manager"]
+  },
+  "fields": [
+    { "name": "account", "label": "Account", "type": "reference", "mandatory": true, "reference_type": "document", "target_templates": ["FIN_ACCOUNT"] },
+    { "name": "source_reference", "label": "Source Transaction ID", "type": "string", "mandatory": true },
+    { "name": "booking_date", "label": "Booking Date", "type": "date", "mandatory": true },
+    { "name": "value_date", "label": "Value Date", "type": "date", "mandatory": false },
+    { "name": "currency", "label": "Currency", "type": "term", "mandatory": true, "terminology_ref": "FIN_CURRENCY" },
+    { "name": "amount", "label": "Amount", "type": "number", "mandatory": true },
+    { "name": "balance_after", "label": "Balance After", "type": "number", "mandatory": false },
+    { "name": "transaction_type", "label": "Transaction Type", "type": "term", "mandatory": true, "terminology_ref": "FIN_TRANSACTION_TYPE" },
+    { "name": "category", "label": "Category", "type": "term", "mandatory": false, "terminology_ref": "FIN_TRANSACTION_CATEGORY" },
+    { "name": "counterparty_name", "label": "Counterparty Name", "type": "string", "mandatory": false },
+    { "name": "counterparty_address", "label": "Counterparty Address", "type": "string", "mandatory": false },
+    { "name": "counterparty_iban", "label": "Counterparty IBAN", "type": "string", "mandatory": false },
+    { "name": "description", "label": "Description", "type": "string", "mandatory": false },
+    { "name": "reference_number", "label": "Payment Reference (QRR etc.)", "type": "string", "mandatory": false },
+    { "name": "card_number", "label": "Card Number (masked)", "type": "string", "mandatory": false },
+    { "name": "exchange_rate", "label": "Exchange Rate", "type": "number", "mandatory": false },
+    { "name": "exchange_target_currency", "label": "Exchange Target Currency", "type": "term", "mandatory": false, "terminology_ref": "FIN_CURRENCY" }
+  ]
+}

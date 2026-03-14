@@ -1,0 +1,18 @@
+{
+  "code": "FIN_TRANSACTION_TYPE",
+  "label": "Transaction Type",
+  "description": "How a financial transaction was executed (debit card, bank transfer, e-bill, etc.)",
+  "terms": [
+    { "value": "ATM_WITHDRAWAL", "label": "ATM Cash Withdrawal", "aliases": ["Bezug UBS Bancomat"] },
+    { "value": "BANK_TRANSFER_IN", "label": "Incoming Bank Transfer", "aliases": ["e-banking-Gutschrift", "Zahlung von"] },
+    { "value": "BANK_TRANSFER_OUT", "label": "Outgoing Bank Transfer", "aliases": ["e-banking-Verg\u00fctungsauftrag", "Zahlung an"] },
+    { "value": "CREDIT_CARD_PAYMENT", "label": "Credit Card Bill Payment", "aliases": [] },
+    { "value": "CURRENCY_EXCHANGE", "label": "Currency Exchange", "aliases": ["W\u00e4hrungsumtausch", "Automatisierter W\u00e4hrungstausch"] },
+    { "value": "DEBIT_CARD", "label": "Debit Card Payment", "aliases": ["Zahlung Debitkarte", "Zahlung per Debitkarte"] },
+    { "value": "E_BILL", "label": "E-Bill / PayNet", "aliases": ["E-BILL", "EBILL-RECHNUNG", "PayNet-Auftrag"] },
+    { "value": "FEE", "label": "Bank Fee / Service Charge", "aliases": ["Saldo Dienstleistungspreisabschluss"] },
+    { "value": "OTHER", "label": "Other", "aliases": [] },
+    { "value": "STANDING_ORDER", "label": "Standing Order", "aliases": ["Dauerauftrag"] },
+    { "value": "TWINT", "label": "TWINT Mobile Payment", "aliases": ["UBS TWINT"] }
+  ]
+}

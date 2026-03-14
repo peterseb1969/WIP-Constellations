@@ -1,0 +1,27 @@
+{
+  "code": "FIN_TRANSACTION_CATEGORY",
+  "label": "Transaction Category",
+  "description": "Spending and income categories for financial transaction analysis",
+  "terms": [
+    { "value": "CHILDREN", "label": "Children & Family", "aliases": [] },
+    { "value": "CLOTHING", "label": "Clothing", "aliases": [] },
+    { "value": "DINING", "label": "Dining & Restaurants", "aliases": [] },
+    { "value": "EDUCATION", "label": "Education", "aliases": [] },
+    { "value": "ENTERTAINMENT", "label": "Entertainment & Leisure", "aliases": [] },
+    { "value": "FEES", "label": "Bank Fees & Charges", "aliases": [] },
+    { "value": "GROCERIES", "label": "Groceries", "aliases": [] },
+    { "value": "HEALTH", "label": "Health & Medical", "aliases": [] },
+    { "value": "HOUSEHOLD", "label": "Household Services", "aliases": [] },
+    { "value": "HOUSING", "label": "Housing & Rent", "aliases": [] },
+    { "value": "INCOME", "label": "Income / Salary", "aliases": [] },
+    { "value": "INSURANCE", "label": "Insurance", "aliases": [] },
+    { "value": "OTHER", "label": "Other", "aliases": [] },
+    { "value": "PARKING", "label": "Parking", "aliases": [] },
+    { "value": "SHOPPING", "label": "Shopping & Electronics", "aliases": [] },
+    { "value": "SPORTS", "label": "Sports & Clubs", "aliases": [] },
+    { "value": "SUBSCRIPTIONS", "label": "Subscriptions & Digital Services", "aliases": [] },
+    { "value": "TELECOM", "label": "Telecom & Internet", "aliases": [] },
+    { "value": "TRANSFER", "label": "Internal Transfer", "aliases": [] },
+    { "value": "TRANSPORT", "label": "Transport & Travel", "aliases": [] }
+  ]
+}

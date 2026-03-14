@@ -1,0 +1,21 @@
+{
+  "code": "FIN_ACCOUNT",
+  "label": "Financial Account",
+  "description": "A bank account, credit card, share depot, or employer for payslip linkage",
+  "identity_fields": ["iban"],
+  "metadata": {
+    "domain": "finance",
+    "category": "master_data",
+    "tags": ["personal-finance", "statement-manager"]
+  },
+  "fields": [
+    { "name": "iban", "label": "IBAN", "type": "string", "mandatory": true, "validation": { "min_length": 5, "max_length": 34 } },
+    { "name": "institution", "label": "Institution Name", "type": "string", "mandatory": true },
+    { "name": "account_type", "label": "Account Type", "type": "term", "mandatory": true, "terminology_ref": "FIN_ACCOUNT_TYPE" },
+    { "name": "primary_currency", "label": "Primary Currency", "type": "term", "mandatory": true, "terminology_ref": "FIN_CURRENCY" },
+    { "name": "holder_name", "label": "Account Holder", "type": "string", "mandatory": false },
+    { "name": "account_number", "label": "Account Number", "type": "string", "mandatory": false },
+    { "name": "swift_bic", "label": "SWIFT/BIC", "type": "string", "mandatory": false },
+    { "name": "description", "label": "Description / Nickname", "type": "string", "mandatory": false }
+  ]
+}

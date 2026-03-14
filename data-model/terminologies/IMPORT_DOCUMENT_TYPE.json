@@ -1,0 +1,9 @@
+{
+  "code": "IMPORT_DOCUMENT_TYPE",
+  "label": "Import Document Type",
+  "description": "Type of document being imported (bank statement, payslip, etc.)",
+  "terms": [
+    { "value": "BANK_STATEMENT", "label": "Bank Statement", "description": "Bank account statement (transactions)", "aliases": [] },
+    { "value": "PAYSLIP", "label": "Payslip", "description": "Employer payslip / salary statement", "aliases": [] }
+  ]
+}

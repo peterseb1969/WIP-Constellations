@@ -1,0 +1,23 @@
+{
+  "code": "FIN_IMPORT",
+  "label": "Financial Import",
+  "description": "Tracks uploaded files (bank statements, payslips) with parsing metadata and a reference to the stored file.",
+  "identity_fields": ["filename"],
+  "metadata": {
+    "domain": "finance",
+    "category": "transaction",
+    "tags": ["import", "file"]
+  },
+  "fields": [
+    { "name": "file", "label": "Uploaded File", "type": "file", "mandatory": true, "file_config": { "allowed_types": ["application/pdf"], "max_size_mb": 50.0, "multiple": false } },
+    { "name": "filename", "label": "Original Filename", "type": "string", "mandatory": true },
+    { "name": "import_date", "label": "Import Date", "type": "datetime", "mandatory": true },
+    { "name": "document_type", "label": "Document Type", "type": "term", "mandatory": true, "terminology_ref": "IMPORT_DOCUMENT_TYPE" },
+    { "name": "parser", "label": "Parser Used", "type": "string", "mandatory": true },
+    { "name": "account", "label": "Account", "type": "reference", "mandatory": false, "reference_type": "document", "target_templates": ["FIN_ACCOUNT"] },
+    { "name": "transactions_created", "label": "Transactions Created", "type": "integer", "mandatory": true },
+    { "name": "period_from", "label": "Period From", "type": "date", "mandatory": false },
+    { "name": "period_to", "label": "Period To", "type": "date", "mandatory": false },
+    { "name": "status", "label": "Import Status", "type": "string", "mandatory": true, "validation": { "enum": ["success", "partial", "failed"] } }
+  ]
+}

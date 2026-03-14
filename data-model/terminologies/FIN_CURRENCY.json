@@ -1,0 +1,11 @@
+{
+  "code": "FIN_CURRENCY",
+  "label": "Currency",
+  "description": "ISO 4217 currency codes for the Personal Finance constellation",
+  "terms": [
+    { "value": "CHF", "label": "Swiss Franc", "aliases": ["Schweizer Franken"] },
+    { "value": "EUR", "label": "Euro", "aliases": [] },
+    { "value": "GBP", "label": "British Pound", "aliases": [] },
+    { "value": "USD", "label": "US Dollar", "aliases": ["US-Dollar"] }
+  ]
+}
