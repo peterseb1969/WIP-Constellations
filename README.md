@@ -14,6 +14,16 @@ See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
 
 This is a personal experiment, not a product. The app supports a random combination of bank statement formats and payslip layouts that happened to be useful for testing. The parsers are brittle by design: they work for a specific selection of input files and will almost certainly fail on yours. Nothing here is intended to be reusable, general-purpose, or production-ready. If you find the *approach* interesting, look at the process and the WIP platform — not the app code.
 
+## Data Privacy Warning
+
+**If you use a cloud AI (Claude, ChatGPT, etc.) to query your WIP data via the MCP server, your personal data leaves your machine.** Transaction amounts, counterparty names, IBANs, salary details — whatever the AI needs to answer your question is sent to the AI provider's servers for processing.
+
+WIP stores your data locally (your Raspberry Pi, your server, your machine). That sovereignty is real *at rest*. But it is broken *in transit* every time a cloud AI queries it. This is not a bug — it is how cloud AI works. The people most attracted to "personal data on my own hardware" are exactly the people who should understand this tradeoff.
+
+The structural solution exists: local AI models (via Ollama or similar) speak the same MCP protocol. When local models are capable enough for multi-tool reasoning, the data never leaves your network. WIP's architecture is ready for that today. Until then, cloud AI queries mean your data travels.
+
+**This should be a conscious choice, not an invisible default.**
+
 ## Status
 
 🚧 Experiment in progress. Starting with the Personal Finance constellation.
