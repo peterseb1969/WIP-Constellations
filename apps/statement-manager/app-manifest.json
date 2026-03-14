@@ -1,0 +1,11 @@
+{
+  "id": "statements",
+  "name": "Statement Manager",
+  "description": "Bank and employer statement management",
+  "version": "0.1.0",
+  "icon": "bank",
+  "path": "/apps/statements",
+  "internal_port": 3001,
+  "health_endpoint": "/health",
+  "constellation": "finance"
+}
