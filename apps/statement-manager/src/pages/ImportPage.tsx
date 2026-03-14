@@ -12,6 +12,7 @@ import type { Document, CreateDocumentRequest } from '@wip/client'
 import { cn, formatDate, formatCurrency } from '@/lib/utils'
 import { parseUbsCsv, toWipTransaction as ubsToWip } from '@/lib/parsers/ubs-csv'
 import { parseYuhPdf, toWipTransaction as yuhToWip } from '@/lib/parsers/yuh-pdf'
+import { extractPdfText } from '@/lib/parsers/pdf-extract'
 import {
   parseRochePayslip,
   toWipPayslip,
@@ -30,10 +31,16 @@ type ParsedResult =
   | { type: 'yuh-pdf'; data: ParsedYuhPdf }
   | { type: 'roche-payslip'; data: ParsedRochePayslip }
 
-function detectParser(filename: string): 'ubs-csv' | 'yuh-pdf' | 'roche-payslip' | null {
-  if (filename.endsWith('.csv')) return 'ubs-csv'
-  if (filename.startsWith('CP_REL') && filename.toLowerCase().endsWith('.pdf')) return 'yuh-pdf'
-  if (filename.startsWith('PAYSLIP_RCH') && filename.toLowerCase().endsWith('.pdf')) return 'roche-payslip'
+function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | null {
+  if (filename.toLowerCase().endsWith('.csv')) return 'ubs-csv'
+  if (filename.toLowerCase().endsWith('.pdf')) return 'pdf'
+  return null
+}
+
+/** Detect PDF type by content — looks for signature strings in extracted text */
+function detectPdfType(text: string): 'yuh-pdf' | 'roche-payslip' | null {
+  if (text.includes('Kontoauszug in') || text.includes('Kontoauszug') && text.includes('Yuh')) return 'yuh-pdf'
+  if (text.includes('Employee Nr.') || text.includes('Pay date') || text.includes('Earnings')) return 'roche-payslip'
   return null
 }
 
@@ -591,13 +598,13 @@ export function ImportPage() {
     setParsed(null)
     setParseError(null)
 
-    const parserType = detectParser(file.name)
-    if (!parserType) {
-      setParseError(`Unrecognized file format: ${file.name}. Expected UBS CSV, Yuh PDF (CP_REL-*), or Roche payslip PDF (PAYSLIP_RCH_*).`)
+    const fileType = detectParserByFilename(file.name)
+    if (!fileType) {
+      setParseError(`Unsupported file type: ${file.name}. Expected a .csv or .pdf file.`)
       return
     }
 
-    if (parserType === 'ubs-csv') {
+    if (fileType === 'ubs-csv') {
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
@@ -610,13 +617,19 @@ export function ImportPage() {
       }
       reader.readAsText(file, 'utf-8')
     } else {
-      // PDF parsers — read as ArrayBuffer
+      // PDF — detect type by content
       setParsing(true)
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
           const buffer = e.target?.result as ArrayBuffer
-          if (parserType === 'yuh-pdf') {
+          const { text } = await extractPdfText(buffer)
+          const pdfType = detectPdfType(text)
+          if (!pdfType) {
+            setParseError('Could not identify this PDF. Expected a Yuh bank statement or Roche payslip.')
+            return
+          }
+          if (pdfType === 'yuh-pdf') {
             const result = await parseYuhPdf(buffer)
             setParsed({ type: 'yuh-pdf', data: result })
           } else {
@@ -767,7 +780,7 @@ export function ImportPage() {
                 Choose File
                 <input
                   type="file"
-                  accept=".csv,.pdf"
+                  accept=".csv,.pdf,.PDF"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
