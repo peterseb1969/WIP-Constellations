@@ -2,12 +2,29 @@
 	root * /srv
 	encode gzip
 
-	# Health endpoint — must be before the SPA fallback
+	# Health endpoint
 	handle /health {
 		respond "OK" 200
 	}
 
-	# SPA fallback — serve static files, fall back to index.html
+	# Proxy API requests to WIP services
+	handle /api/registry/* {
+		reverse_proxy {$WIP_REGISTRY_URL:wip-registry:8001}
+	}
+	handle /api/def-store/* {
+		reverse_proxy {$WIP_DEF_STORE_URL:wip-def-store:8002}
+	}
+	handle /api/template-store/* {
+		reverse_proxy {$WIP_TEMPLATE_STORE_URL:wip-template-store:8003}
+	}
+	handle /api/document-store/* {
+		reverse_proxy {$WIP_DOCUMENT_STORE_URL:wip-document-store:8004}
+	}
+	handle /api/reporting-sync/* {
+		reverse_proxy {$WIP_REPORTING_SYNC_URL:wip-reporting-sync:8005}
+	}
+
+	# SPA fallback
 	handle {
 		try_files {path} /index.html
 		file_server

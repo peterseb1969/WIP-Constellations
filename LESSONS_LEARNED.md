@@ -608,4 +608,28 @@ The fix is not better instructions — the instructions are clear. The fix is sm
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 016, 017, etc.) and include date, category, phase, and severity.*
+## Entry 016 — 2026-03-14
+
+**Category:** Silent failure in container deployment
+**Phase:** Containerisation
+**Severity:** Medium (app renders but shows no data — zero errors visible)
+
+### What happened
+
+The containerised Statement Manager rendered perfectly — sidebar, dashboard cards, navigation — but showed zero data. No API calls appeared in the browser’s Network tab. No errors appeared in the Console. The app looked functional but was completely inert.
+
+Root cause: `@wip/client`’s HTTP layer constructs URLs with `new URL(fullUrl)` where `fullUrl` is `${baseUrl}${path}`. When `baseUrl` is empty string, `fullUrl` becomes a relative path like `/api/document-store/...`. `new URL("/api/...")` without a base throws a `TypeError` because the URL constructor requires an absolute URL. This error was silently swallowed by the query layer, producing zero requests and zero errors.
+
+The fix in the app: when `wipApiUrl` from config.json is empty, fall back to `window.location.origin`. This gives the URL constructor an absolute base, and Caddy’s reverse proxy routes `/api/*` to WIP services.
+
+### Lesson
+
+1. **Silent failures are the hardest to debug.** An app that crashes is easy to fix — the error points to the problem. An app that renders correctly but silently does nothing is much harder. The zero-errors, zero-requests, zero-data symptom had no obvious cause without tracing through the URL construction logic.
+
+2. **This is a @wip/client improvement opportunity.** The client library should handle empty `baseUrl` gracefully — either by defaulting to `window.location.origin` in browser environments, or by throwing a clear error at construction time. The current behaviour (silently failing on every request) is the worst possible outcome.
+
+3. **Container testing must include data verification.** "The container starts and serves HTML" is not a sufficient test. "The container starts, serves HTML, and displays real data from WIP" is the actual test. The health endpoint returned OK while the app was completely non-functional.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 017, 018, etc.) and include date, category, phase, and severity.*
