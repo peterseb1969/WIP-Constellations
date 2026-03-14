@@ -230,7 +230,15 @@ function TransactionPreview({
         totalCreated += res.results.filter((r) => r.status === 'created' || r.status === 'updated').length
         res.results
           .filter((r) => r.status === 'error')
-          .forEach((r) => errors.push(r.error ?? 'Unknown error'))
+          .forEach((r) => {
+            const msg = r.error ?? 'Unknown error'
+            // Duplicate version = already imported, count as success
+            if (msg.includes('E11000') && msg.includes('version')) {
+              totalCreated++
+            } else {
+              errors.push(msg)
+            }
+          })
       }
 
       // 2. Upload original file
@@ -424,7 +432,15 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
         linesCreated = res.results.filter((r) => r.status === 'created' || r.status === 'updated').length
         res.results
           .filter((r) => r.status === 'error')
-          .forEach((r) => errors.push(r.error ?? 'Unknown error'))
+          .forEach((r) => {
+            const msg = r.error ?? 'Unknown error'
+            // Duplicate version = already imported, count as success
+            if (msg.includes('E11000') && msg.includes('version')) {
+              totalCreated++
+            } else {
+              errors.push(msg)
+            }
+          })
       }
 
       // 3. Upload original file
