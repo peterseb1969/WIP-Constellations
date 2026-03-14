@@ -137,11 +137,29 @@ This led to a thorough update of every public-facing document — Two Theses, Jo
 
 **+0:52 — Definition of done: met.**
 
-### Day 2 Build Complete
+### Containerisation (evening, post definition-of-done)
 
-**Total build time: 5 hours 22 minutes** (4:30 pre-dinner + 0:52 post-dinner).
+**+0:55 — Container build started.** Followed the distributable-app-format spec (written by WIP-Claude that morning). Runtime config injection via `/config.json`, generated from environment variables at container start.
 
-From clean slate to definition-of-done: scaffold, five pages with live data, three collaboratively-built import parsers, account creation form, dual-level transaction filtering with operators, Dockerfile, 101 tests, six documentation files.
+**+0:58 — First build failure.** `npm ci` fails inside Docker — `package.json` has `file:` references to absolute paths on the Mac (`/Users/peter/Development/WorldInPie/libs/wip-client`). These don’t exist inside the container. Fix: `npm pack` creates `.tgz` tarballs from the WIP libraries; `package.json` references `file:./wip-client-0.1.0.tgz` instead.
+
+**+1:02 — Image builds.** Multi-stage: Node 20 Alpine builds the app, Caddy 2 Alpine serves it. `docker-entrypoint.sh` generates `/config.json` from `WIP_API_URL`, `WIP_API_KEY`, `APP_BASE_PATH` at startup. Seed files and `app-manifest.json` baked in. 62.3 MB image.
+
+**+1:04 — Wrong API key.** First container run: health endpoint returns OK, but API calls fail with "Invalid API key." The key was `wip-dev-key-001` instead of `dev_master_key_for_testing`. Restarted with correct key.
+
+**+1:06 — The silent failure.** Container renders the app beautifully — sidebar, dashboard cards, navigation, everything styled correctly. Zero data. Zero API calls in the Network tab. Zero errors in the Console. The app looks perfect and does nothing.
+
+**+1:12 — Root cause found.** `@wip/client`’s URL constructor does `new URL(fullUrl)` where `fullUrl` is a relative path when `baseUrl` is empty string. `new URL("/api/...")` throws TypeError. The error is silently swallowed — no requests, no errors, no clues. Fix: fall back to `window.location.origin` when `wipApiUrl` is empty.
+
+**+1:15 — Container working.** Rebuilt image, restarted. Real financial data served from a container, API calls proxied through Caddy to WIP services. Same image works standalone or behind the WIP gateway.
+
+**+1:18 — @wip/client fixed upstream.** WIP-Claude patched `FetchTransport` to handle empty `baseUrl` natively — browser falls back to `window.location.origin`, Node.js throws a clear error. The next app won’t hit this bug.
+
+### Day 2 Complete
+
+**Total time: ~6.5 hours** (4:30 build pre-dinner + 0:52 post-dinner tests/docs + ~1:10 containerisation and debugging).
+
+From clean slate to a containerised, distributable app: scaffold, five pages with live data, three collaboratively-built import parsers, account creation form, dual-level transaction filtering with operators, 101 tests, six documentation files, runtime config injection, and a working container image.
 
 ---
 
@@ -162,6 +180,9 @@ When the AI sensed context exhaustion approaching, it jumped from Step 1 (scaffo
 
 ### Column filter UX was bad on first attempt
 The AI replaced the working toolbar filters (search, dropdowns) with column-header popovers — removing quick-access filtering entirely. The popovers rendered as horizontal three-box layouts that the user called "ugly." The fix: restore both — toolbar for quick access, popovers for advanced filtering. Two levels, not a replacement.
+
+### The container that looked perfect and did nothing
+The containerised app rendered beautifully — sidebar, dashboard cards, navigation, everything. Zero errors in the console. But zero data, zero API calls. The app was a perfect empty shell. Root cause: `@wip/client`’s URL constructor silently fails when `baseUrl` is empty string, swallowing the TypeError. No requests are made, no errors are surfaced. Diagnosed by reading the Network tab (zero requests) and tracing through URL construction logic. Fixed in both the app (window.location.origin fallback) and the client library (upstream fix by WIP-Claude).
 
 ### The client library spec was wrong
 Two field names in the spec I wrote (`host` instead of `baseUrl`, `mode` instead of `type`) didn't match the actual `@wip/client` implementation. TypeScript caught both at compile time. Same class of bug as the MCP server field naming issue — hand-written documentation drifting from code.
@@ -198,11 +219,25 @@ Two field names in the spec I wrote (`host` instead of `baseUrl`, `mode` instead
 
 **Carried forward from Day 1:**
 - 6 terminologies, 5 templates in WIP (FIN_TRANSACTION now v2 with raw_details field)
-- 10 slash commands, 15 lessons learned entries (12 from Day 1, 3 added Day 2)
+- 10 slash commands, 16 lessons learned entries (12 from Day 1, 4 added Day 2)
 - Process, guardrails, and documentation framework established
 - Distributable app format spec (514 lines, by WIP-Claude)
 
-**Day 2 build session (5 hours 22 minutes total):**
+**Day 2 build session (~6.5 hours total including containerisation):**
+
+Statement Manager — hard numbers:
+
+| Metric | Value |
+|---|---|
+| Source code | 3,514 lines across 16 files |
+| Test code | 843 lines across 5 files |
+| Total TypeScript files | 20 |
+| Documentation | 522 lines across 6 files |
+| Commits (Day 2) | 48 |
+| Docker image | 62.3 MB |
+| Production JS bundle | 783 KB |
+| Tests | 101 passing |
+
 - 1 complete app at definition-of-done
 - 5 pages with live data: Dashboard, Accounts, Transactions, Payslips, Import
 - 3 import parsers collaboratively built: UBS CSV (28 tests), Yuh PDF (25 tests), Roche payslip (44 tests)
@@ -222,6 +257,8 @@ Two field names in the spec I wrote (`host` instead of `baseUrl`, `mode` instead
 - 1 parser library switch (pdf-parse → pdfjs-dist for browser compatibility)
 - 1,337+ transactions, 4 accounts, 4 payslips with 47 line items queryable in the app
 - Re-import idempotency confirmed (identical documents skipped, no spurious versions)
+- 1 container image built and running (runtime config injection, Caddy reverse proxy, seed files baked in)
+- 1 @wip/client bug found and fixed upstream (empty baseUrl silent failure)
 
 **Day 2 morning (pre-build):**
 - 5 WIP platform features implemented by WIP-Claude (file upload, CSV import, template-aware queries, cross-template SQL joins, event replay)
@@ -250,18 +287,22 @@ Two field names in the spec I wrote (`host` instead of `baseUrl`, `mode` instead
 
 | Metric | Day 1 | Day 2 |
 |---|---|---|
-| Time to working app | Full day (~8h mixed with process design) | 5h 22m focused build |
+| Total time | Full day (~8h mixed with process design) | ~6.5h (build + tests + docs + container) |
+| Source code | Unknown (deleted) | 3,514 lines, 16 files |
+| Test code | 0 | 843 lines, 5 files, 101 tests |
+| Documentation | 0 | 522 lines, 6 files |
+| Commits | ~10 | 48 |
 | Import parsers | 1 (UBS CSV, mapping issues found later) | 3 (UBS CSV, Yuh PDF, Roche payslip, all collaboratively mapped) |
 | Parser mapping review | None (AI decided alone) | All 3 reviewed and corrected by user |
-| Tests | 0 | 101 across 5 files |
-| Documentation files | 0 | 6 files, 517 lines |
 | UX approval gate | Not present (added mid-day) | Fired before first component |
 | Context exhaustions | 1 (lost work) | 2 (all work survived via commits) |
-| Platform bugs found | 3 (MCP field naming) | 2 (bulk upsert race, query inactive versions) |
+| Platform bugs found | 3 (MCP field naming) | 3 (bulk upsert race, query inactive versions, empty baseUrl) |
 | Transaction filters | Basic client-side | Dual-level: toolbar + column popovers with operators |
 | Seed files | Not created until end of day | Exported before build started |
 | Data model changes | Not tracked | Template v2 + seed file updated immediately |
 | Re-import safety | Not verified | Confirmed: identical docs skipped, no spurious versions |
+| Container | Not built | 62.3 MB image, runtime config, Caddy proxy |
+| Docker bundle | N/A | 783 KB production JS |
 
 The Day 2 app is more complete, better tested, better documented, and was built faster. The process (UX gate, extraction-first rule, incremental commits, `/document`) demonstrably improved the outcome. This is the Day 1 calibration paying off.
 
@@ -293,4 +334,4 @@ Day 3 might be a few days away. The weekend is over. But the container is ready,
 
 ---
 
-*Day 2 final status: 5 hours 22 minutes of build time, plus containerisation. One complete app at definition-of-done, running in a container with runtime config injection. 101 tests, 6 documentation files, 16 lessons learned entries. Two context exhaustions survived. Two platform bugs fixed upstream. One silent container deployment bug diagnosed and fixed in both the app and the client library. The calibrated instruments produced a measurably better result than Day 1 — and they did it faster, with more features, better tests, and proper documentation. The next step is the Raspberry Pi.*
+*Day 2 final status: approximately 6.5 hours total. One complete app at definition-of-done, running in a container with runtime config injection. 101 tests, 6 documentation files, 16 lessons learned entries. Two context exhaustions survived. Two platform bugs fixed upstream. One silent container deployment bug diagnosed and fixed in both the app and the client library. The calibrated instruments produced a measurably better result than Day 1 — and they did it faster, with more features, better tests, and proper documentation. The next step is the Raspberry Pi.*
