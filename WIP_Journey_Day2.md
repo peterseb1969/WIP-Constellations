@@ -281,4 +281,16 @@ But the comparison isn’t entirely clean: Day 2 benefited from a pre-existing d
 
 ---
 
-*Day 2 status: complete. 5 hours 22 minutes from clean slate to definition-of-done. One app, five pages, three parsers, 101 tests, six documentation files. Two context exhaustions survived. Two platform bugs fixed upstream. The calibrated instruments produced a measurably better result than Day 1’s uncalibrated run — and they did it in less time, with more features, better tests, and proper documentation.*
+## Looking Ahead: Day 3
+
+Day 3 will test the final claim: that a containerised WIP app can be deployed to a Raspberry Pi and serve real data in a home network. The image is built. The runtime config injection works. The seed files are baked in. The theory says: `podman pull`, set three environment variables, and it runs.
+
+The reality will likely be messier. ARM architecture (the Pi is ARM64, the Mac is also ARM64 — so the image should be compatible). Network configuration between the Pi’s WIP instance and the app container. Caddy gateway integration with the existing WIP services. Performance with 1,337+ transactions on a Pi’s hardware.
+
+Once the Statement Manager is running on the Pi, the next milestone is the second app. The Receipt Scanner — the first cross-app reference, the first test of the network effect thesis. A receipt linked to a transaction. A grocery item linked to a spending category. The question that neither app could answer alone, answered by both together.
+
+Day 3 might be a few days away. The weekend is over. But the container is ready, the Pi is waiting, and the experiment continues.
+
+---
+
+*Day 2 final status: 5 hours 22 minutes of build time, plus containerisation. One complete app at definition-of-done, running in a container with runtime config injection. 101 tests, 6 documentation files, 16 lessons learned entries. Two context exhaustions survived. Two platform bugs fixed upstream. One silent container deployment bug diagnosed and fixed in both the app and the client library. The calibrated instruments produced a measurably better result than Day 1 — and they did it faster, with more features, better tests, and proper documentation. The next step is the Raspberry Pi.*
