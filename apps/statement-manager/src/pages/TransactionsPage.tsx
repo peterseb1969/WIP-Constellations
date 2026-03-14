@@ -344,13 +344,19 @@ export function TransactionsPage() {
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilter>>({})
   const [openFilter, setOpenFilter] = useState<string | null>(null)
+  // Top-level quick filters
+  const [searchText, setSearchText] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [accountId, setAccountId] = useState('')
+  const [txType, setTxType] = useState('')
   const [page, setPage] = useState(1)
   const pageSize = 25
 
   const { data: templateData } = useTemplateByValue('FIN_TRANSACTION')
   const templateId = templateData?.template_id
 
-  // Load accounts for account column filter
+  // Load accounts for filter dropdowns
   const { data: accountsData } = useDocuments({
     template_value: 'FIN_ACCOUNT',
     page_size: 50,
@@ -362,9 +368,16 @@ export function TransactionsPage() {
     label: `${(a.data.institution as string) ?? ''} — ${(a.data.label as string) ?? (a.data.iban as string) ?? a.document_id}`,
   }))
 
-  const activeFilterCount = Object.keys(columnFilters).length
+  const activeColumnFilterCount = Object.keys(columnFilters).length
+  const hasTopFilters = searchText || dateFrom || dateTo || accountId || txType
+  const hasAnyFilter = hasTopFilters || activeColumnFilterCount > 0
 
   function clearAllFilters() {
+    setSearchText('')
+    setDateFrom('')
+    setDateTo('')
+    setAccountId('')
+    setTxType('')
     setColumnFilters({})
     setPage(1)
   }
@@ -384,8 +397,27 @@ export function TransactionsPage() {
   }
 
   const filters = useMemo(() => {
-    return columnFiltersToQuery(columnFilters)
-  }, [columnFilters])
+    const f: QueryFilter[] = []
+    // Top-level quick filters
+    if (searchText.trim()) {
+      f.push({ field: 'data.description', operator: 'regex', value: searchText.trim() })
+    }
+    if (dateFrom) {
+      f.push({ field: 'data.booking_date', operator: 'gte', value: dateFrom })
+    }
+    if (dateTo) {
+      f.push({ field: 'data.booking_date', operator: 'lte', value: dateTo })
+    }
+    if (accountId) {
+      f.push({ field: 'data.account', operator: 'eq', value: accountId })
+    }
+    if (txType) {
+      f.push({ field: 'data.transaction_type', operator: 'eq', value: txType })
+    }
+    // Column-level filters
+    f.push(...columnFiltersToQuery(columnFilters))
+    return f
+  }, [searchText, dateFrom, dateTo, accountId, txType, columnFilters])
 
   const { data, isLoading, error } = useQueryDocuments(
     {
@@ -434,20 +466,61 @@ export function TransactionsPage() {
         </div>
       </div>
 
-      {/* Top bar: active filter count + clear + column selector */}
-      <div className="flex items-center gap-3 mb-4">
-        {activeFilterCount > 0 && (
-          <div className="flex items-center gap-2 text-sm text-text-muted">
-            <Filter size={14} className="text-primary" />
-            <span>{activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''}</span>
-            <button
-              onClick={clearAllFilters}
-              className="flex items-center gap-1 text-danger hover:underline"
-            >
-              <X size={12} />
-              Clear all
-            </button>
-          </div>
+      {/* Quick filters bar */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            placeholder="Search descriptions..."
+            value={searchText}
+            onChange={(e) => { setSearchText(e.target.value); setPage(1) }}
+            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        />
+        <select
+          value={accountId}
+          onChange={(e) => { setAccountId(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        >
+          <option value="">All accounts</option>
+          {accounts.map((a) => (
+            <option key={a.document_id} value={a.document_id}>
+              {(a.data.institution as string) ?? ''} — {(a.data.label as string) ?? (a.data.iban as string) ?? a.document_id}
+            </option>
+          ))}
+        </select>
+        <select
+          value={txType}
+          onChange={(e) => { setTxType(e.target.value); setPage(1) }}
+          className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+        >
+          <option value="">All types</option>
+          {TX_TYPE_OPTIONS.map((t) => (
+            <option key={t.value} value={t.value}>{t.label}</option>
+          ))}
+        </select>
+        {hasAnyFilter && (
+          <button
+            onClick={clearAllFilters}
+            className="flex items-center gap-1 px-3 py-2 text-sm text-text-muted hover:text-danger"
+            title="Clear all filters"
+          >
+            <X size={14} />
+            Clear
+          </button>
         )}
         <div className="relative ml-auto">
           <button
@@ -482,24 +555,18 @@ export function TransactionsPage() {
               <tr className="bg-gray-50 border-b border-gray-200">
                 {visibleColumns.map((col) => {
                   const hasFilter = !!columnFilters[col.key]
-                  const summary = filterSummary(col.key)
                   return (
-                    <th key={col.key} className="text-left px-4 py-2 font-medium text-text-muted whitespace-nowrap relative">
-                      <button
-                        onClick={() => setOpenFilter(openFilter === col.key ? null : col.key)}
-                        className="flex items-center gap-1.5 hover:text-primary group w-full"
-                        title={`Filter ${col.label}`}
-                      >
-                        <span>{col.label}</span>
-                        <span className={`inline-flex items-center ${hasFilter ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600'}`}>
-                          {hasFilter ? <Filter size={14} /> : <ChevronDown size={14} />}
-                        </span>
-                        {summary && (
-                          <span className="text-[10px] font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded truncate max-w-[100px]">
-                            {summary}
-                          </span>
-                        )}
-                      </button>
+                    <th key={col.key} className="text-left px-4 py-3 font-medium text-text-muted whitespace-nowrap relative">
+                      <div className="flex items-center gap-1">
+                        {col.label}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setOpenFilter(openFilter === col.key ? null : col.key) }}
+                          className={`p-0.5 rounded hover:bg-gray-200 ${hasFilter ? 'text-primary' : 'text-gray-300 hover:text-gray-500'}`}
+                          title={hasFilter ? `Filtered: ${filterSummary(col.key)}` : `Filter ${col.label}`}
+                        >
+                          <Filter size={12} />
+                        </button>
+                      </div>
                       {openFilter === col.key && (
                         <ColumnFilterPopover
                           column={col}
