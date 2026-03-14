@@ -191,6 +191,20 @@ Die Apps sind der Weg, wie Daten *hineinkommen* — strukturiert und validiert. 
 
 Das ist keine technische Errungenschaft für Entwickler. Das ist ein **persönlicher Datenassistent für alle.**
 
+### Ein ehrliches Wort zum Datenschutz
+
+Wir müssen etwas direkt ansprechen, denn genau die Menschen, die sich am meisten über «deine Daten bleiben bei dir zuhause» freuen, werden diese Frage stellen.
+
+WIP speichert deine Daten auf deinem Raspberry Pi. Kein Cloud-Dienst hat eine Kopie deiner Datenbank. Das ist real und es ist wichtig. **Aber** — wenn du einem KI-Assistenten eine Frage über deine Daten stellst, müssen deine Daten zur KI übertragen werden, damit sie verarbeitet werden können. Wenn du fragst «Wie viel habe ich fürs Auswärtsessen ausgegeben?», werden deine tatsächlichen Transaktionen an den KI-Anbieter (wie Anthropic, die Claude herstellen) gesendet, damit er die Antwort berechnen kann. Dein Gehalt, deine IBANs, deine Ausgabengewohnheiten — sie verlassen deinen Pi für die Dauer dieses Gesprächs.
+
+So funktionieren alle Cloud-KI-Dienste. Es ist nicht anders, als die Mobile-Banking-App deiner Bank zu nutzen (deine Daten reisen auch zu deren Servern). Aber es bedeutet, dass «persönliche Datenhoheit» eine Grenze hat: **Souverän im Ruhezustand, exponiert im Transit, wenn du über eine Cloud-KI abfragst.**
+
+Es gibt eine Lösung in Sicht: **KI-Modelle, die lokal laufen**, auf dem Raspberry Pi selbst oder auf deinem Heimcomputer. Diese lokalen Modelle sprechen dasselbe Protokoll wie die Cloud-KI. Wenn sie leistungsfähig genug für komplexe Fragen werden (was schnell voranschreitet), verlassen deine Daten nie dein Zuhause — nicht im Ruhezustand, nicht im Transit, nie. WIP ist für diese Zukunft bereits gebaut. Es muss sich nichts ändern — nur welche KI deine Fragen beantwortet.
+
+In der Zwischenzeit liegt die Entscheidung bei dir. Du kannst WIP-Apps nutzen, um deine Daten direkt anzusehen (keine KI beteiligt, vollständig privat). Du kannst über lokale Werkzeuge und SQL abfragen (vollständig privat). Oder du kannst die konversationelle KI für ihren enormen Komfort nutzen, im Wissen, dass deine Daten für die Verarbeitung an einen Cloud-Dienst reisen. Die Wahl sollte bewusst sein, nicht unsichtbar.
+
+Wir sagen dir das lieber jetzt, als dass du es später selbst herausfindest. Vertrauen entsteht durch Ehrlichkeit, nicht durch Kleingedrucktes.
+
 ### Der Zinseszins-Effekt
 
 Das macht den Zinseszins-Effekt noch kraftvoller als ursprünglich beschrieben. Wir haben eine App. Die Konstellationsthese sagt, die Magie beginnt bei drei oder mehr Apps, wenn die Querverbindungen zwischen den Datensätzen reich genug werden, um Fragen zu beantworten, die keine einzelne App beantworten könnte.

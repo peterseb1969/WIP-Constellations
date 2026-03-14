@@ -122,7 +122,7 @@ By the end of the day:
 **AI configuration:**
 - 1 CLAUDE.md master instruction file
 - 10 slash commands (`/explore`, `/design-model`, `/implement`, `/build-app`, `/improve`, `/export-model`, `/bootstrap`, `/wip-status`, `/add-app`, plus the WIP-status check)
-- 11 lessons learned entries (and counting)
+- 12 lessons learned entries (and counting)
 
 **In WIP:**
 - 5 terminologies with 51 terms
@@ -200,6 +200,20 @@ The audience shifts from developers to everyone. A non-technical person won't bu
 And WIP is what makes the AI's answers trustworthy. An AI querying a folder of random CSVs hallucinates relationships and guesses at field meanings. An AI querying WIP gets standardised vocabularies, validated schemas, verified references, and versioned history. The structure that WIP enforces — the same structure that guardrails the AI during development — is what makes conversational data access reliable rather than a parlour trick.
 
 This wasn't in the plan. It emerged from building the thing. That might be the most valuable lesson of day one: **build the infrastructure for the right reasons, and capabilities you didn't plan for emerge from the structure.**
+
+## The Uncomfortable Truth About "Talk to Your Data"
+
+In the excitement of the MCP realisation, we almost missed something important. The story says: your data lives on your Raspberry Pi, in your home, under your control. No cloud. No data harvesting.
+
+But the moment you ask Claude "How much did I spend on groceries?", your actual transaction data — counterparty names, amounts, dates, IBANs — is sent to Anthropic's servers for processing. The Raspberry Pi's sovereignty is real at rest. It is broken in transit every time you use a cloud AI to query your own data.
+
+This is not a bug. It is the normal operation of cloud AI services. And it needs to be said out loud, because the people most attracted to "personal data sovereignty on a Raspberry Pi" are exactly the people who care most about where their data goes.
+
+The honest framing: WIP provides sovereignty at rest. Conversational access via cloud AI trades some of that sovereignty for enormous capability. The tradeoff is explicit, not hidden. And it has a structural solution on the horizon — **local AI models** running on the Pi itself (via Ollama or similar) speak the same MCP protocol. When local models become capable enough for multi-tool reasoning, the data never leaves the home network. WIP's architecture is ready for that transition today. Nothing changes except which AI connects to the MCP server.
+
+In the meantime, users should know: asking your AI assistant about your finances means your finances leave your Pi for the duration of that query. That may be acceptable (it's no worse than using your bank's app, which also sends your data to their servers). But it should be a conscious choice, not an invisible default.
+
+We cannot build credibility on data sovereignty and then quietly route personal data through cloud APIs. Stating the tension honestly is more trustworthy than hiding it.
 
 ## Late Addition: Making AI-Built Apps Survive Their Builder
 

@@ -493,4 +493,50 @@ Only the app code (the React UI, import parsers, components). This is the one ar
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 012, 013, etc.) and include date, category, phase, and severity.*
+## Entry 012 — 2026-03-14
+
+**Category:** Architecture tension
+**Phase:** N/A (fundamental design tradeoff)
+**Severity:** High (credibility risk if not addressed transparently)
+
+### What happened
+
+After the Day 1 realisation that the MCP server turns WIP into a conversational personal data assistant (Entry 010), a follow-up question surfaced: where does the data go when you "talk to your data"?
+
+The answer: to the cloud AI provider's servers.
+
+WIP keeps data sovereign at rest — on the Raspberry Pi, in the user's home, under their control. But conversational access through a cloud-hosted AI (Claude, GPT, etc.) requires the queried data to be sent to the AI provider for processing. "How much did I spend on groceries?" sends actual transaction data to Anthropic. "Should I replace my windows?" sends energy consumption, financial details, and property information.
+
+This is not a security vulnerability. It is the normal operation of cloud AI. But it creates a tension with the data sovereignty narrative that is central to WIP's identity.
+
+### Why this matters for the project
+
+The people most attracted to "personal data on a Raspberry Pi" are privacy-conscious users who specifically want to avoid their data flowing through cloud services. If the project pitches data sovereignty and then quietly requires cloud AI for its most compelling feature, the credibility loss is severe and potentially fatal to adoption.
+
+### The honest position
+
+Stated plainly across all public-facing documents:
+
+1. **WIP provides sovereignty at rest.** Your Pi is the source of truth. No cloud service has a persistent copy of your database.
+2. **Conversational queries via cloud AI expose data in transit.** The data leaves your home for the duration of the query. This is no worse than using a banking app (which also sends data to remote servers), but it should be a conscious choice.
+3. **Local AI models are the structural solution.** Models running on-device speak the same MCP protocol. When local models become capable of multi-tool reasoning, the data never leaves the home network. WIP is ready for this today — nothing changes except which AI connects.
+4. **Non-AI access is fully private.** Using WIP’s apps directly, querying via SQL, or browsing the Console involves zero cloud exposure. The conversational layer is opt-in, not mandatory.
+
+### Where this was documented
+
+- WIP_TwoTheses.md: new section "The Honest Tradeoff: Data Sovereignty vs. Conversational Access"
+- WIP_Journey.md: new section "The Uncomfortable Truth About Talk to Your Data"
+- WIP_Journey_NonTech_EN.md: new section "An Honest Word About Privacy"
+- WIP_Journey_NonTech_DE.md: new section "Ein ehrliches Wort zum Datenschutz"
+
+### Lessons
+
+1. **State tensions honestly in the documents that pitch the vision.** Not in a footnote. Not in a FAQ. In the main narrative, adjacent to the feature that creates the tension. Readers who discover the tradeoff themselves will feel misled. Readers who are told upfront will feel respected.
+
+2. **Design for the future, be honest about the present.** The architecture supports full sovereignty (local AI via MCP). The present reality doesn’t (cloud AI is needed for complex reasoning). Stating both — the aspiration and the current limitation — is more credible than either alone.
+
+3. **The tradeoff is the user’s to make, not ours to hide.** Some users will happily send financial data to a cloud AI (they already do this with banking apps). Others won’t. The system should support both choices transparently.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 013, 014, etc.) and include date, category, phase, and severity.*

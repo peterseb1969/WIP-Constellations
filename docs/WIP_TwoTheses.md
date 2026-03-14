@@ -244,6 +244,44 @@ The experiment will be conducted transparently. The use case documents (Parts 1,
 
 - Honest assessment of whether the theses hold up under real use
 
+# The Honest Tradeoff: Data Sovereignty vs. Conversational Access
+
+The preceding section described a compelling vision: structured personal data on your Raspberry Pi, queryable through natural conversation with an AI assistant. Your data, your hardware, your control.
+
+There is a tension in this vision that must be stated plainly.
+
+## The problem
+
+WIP keeps your data sovereign **at rest.** Your Raspberry Pi is the source of truth. No cloud service has a copy of your database. No terms of service govern your access to your own financial records. This is real and meaningful.
+
+But the moment you query your data through a cloud-hosted AI — Claude, GPT, or any remote model — your data leaves your home **in transit.** The AI can only reason about data it can see. When you ask "How much did I spend on groceries last month?", your actual transactions are sent to the AI provider's servers for processing. When you ask "Should I replace my windows?", your energy consumption, financial situation, and property details flow through the same channel.
+
+This is not a security vulnerability. It is the **normal operation** of cloud AI services. But it means the "personal data sovereignty" narrative has a boundary: sovereign at rest, exposed in transit during conversational queries.
+
+## What this means for users
+
+The exposure varies by use case:
+
+**Low sensitivity:** Querying terminology structures, template schemas, aggregate statistics. "How many transactions do I have?" sends a count, not the transactions themselves.
+
+**Medium sensitivity:** Querying categorised or aggregated personal data. "What's my monthly spending by category?" sends category totals, not individual purchases.
+
+**High sensitivity:** Querying individual records. "Show me all transactions over CHF 1,000" sends your actual financial data to the AI provider. Payslip queries expose your salary. Account queries expose your IBANs.
+
+Users should understand which queries expose which data and make informed choices about what they ask via cloud AI.
+
+## The path forward
+
+**Local AI models** are the structural solution. Models running on-device (via Ollama, llama.cpp, or similar) speak the same MCP protocol. If the AI runs on the Raspberry Pi alongside WIP, no data ever leaves the home network. Today, local models lack the reasoning capability for complex multi-tool queries (the renovation decision that spans six data sources). This gap is closing rapidly. WIP's architecture is ready for the transition — nothing changes except which AI connects to the MCP server.
+
+**Role-based MCP access** could limit which tools, templates, and documents a session can see. Financial data might be excluded from casual sessions and only available in a dedicated context with explicit user consent.
+
+**Data minimisation** in the MCP server — returning aggregates where possible, stripping sensitive fields from query results unless explicitly requested — reduces the amount of personal data that reaches the AI.
+
+**The honest position:** WIP provides data sovereignty at rest. Conversational access via cloud AI trades some of that sovereignty for capability. The tradeoff is explicit, not hidden. Local AI will close the gap. In the meantime, the user should know exactly what they are trading and when.
+
+We cannot pitch "your data stays in your home" and then quietly route personal finances through a cloud API. The architecture supports full sovereignty today — if you query through local tools, SQL, or the WIP Console. The conversational AI layer adds enormous value but introduces a data-in-transit exposure that the user must understand.
+
 # An Invitation
 
 This experiment is not a product launch. It is not a polished demo. It is a genuine exploration of two ideas that may or may not hold up in practice.
