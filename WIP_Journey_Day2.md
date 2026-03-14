@@ -97,33 +97,33 @@ This led to a thorough update of every public-facing document — Two Theses, Jo
 
 **0:55 — Account creation form committed.** Reusable TermSelect component fetches terminology terms from WIP at runtime. Form validates required fields, creates documents via `useCreateDocument`.
 
-**0:70 — UBS CSV parser committed.** The collaborative process worked: AI showed raw extraction, user corrected the Beschreibung1/2/3 mapping (Beschreibung2 is the description, not Beschreibung1+2 combined). Template versioned to v2 to add `raw_details` field. Seed file updated.
+**1:10 — UBS CSV parser committed.** The collaborative process worked: AI showed raw extraction, user corrected the Beschreibung1/2/3 mapping (Beschreibung2 is the description, not Beschreibung1+2 combined). Template versioned to v2 to add `raw_details` field. Seed file updated.
 
-**0:85 — Context exhaustion #1.** All work committed. New session starts, recovers via `/wip-status` and transcript search.
+**1:25 — Context exhaustion #1.** All work committed. New session starts, recovers via `/wip-status` and transcript search.
 
-**1:00 — Yuh parser analysis recovered.** The AI found the previous session's agreed analysis (last-line regex, balance-diff sign detection, multi-currency sections) by searching the transcript. Mapping reviewed and approved.
+**1:40 — Yuh parser analysis recovered.** The AI found the previous session's agreed analysis (last-line regex, balance-diff sign detection, multi-currency sections) by searching the transcript. Mapping reviewed and approved.
 
-**1:20 — Yuh PDF parser committed.** 353 transactions across 3 files, multi-currency (CHF, USD, EUR), balance-diff sign detection working.
+**2:00 — Yuh PDF parser committed.** 353 transactions across 3 files, multi-currency (CHF, USD, EUR), balance-diff sign detection working.
 
-**1:40 — Roche payslip parser committed.** All 4 payslips parse correctly, 18 line items each, subtotals filtered, payment amounts validate exactly. Extraction-first rule followed without prompting.
+**2:20 — Roche payslip parser committed.** All 4 payslips parse correctly, 18 line items each, subtotals filtered, payment amounts validate exactly. Extraction-first rule followed without prompting.
 
-**1:50 — Import page wired up.** All three parsers integrated. Auto-detection by filename. Discriminated union type for parser results. Transaction preview and payslip preview components. File upload + FIN_IMPORT record creation.
+**2:30 — Import page wired up.** All three parsers integrated. Auto-detection by filename. Discriminated union type for parser results. Transaction preview and payslip preview components. File upload + FIN_IMPORT record creation.
 
-**1:55 — pdf-parse crashes in browser.** `fs.readFileSync` at module load time. Switch to pdfjs-dist. But pdfjs-dist produces cleaner text (spaces between fields, proper Unicode), so every regex built against pdf-parse's glued output is wrong. Both parsers rewritten. Key lesson: test extraction in the same environment the parser will run in.
+**2:35 — pdf-parse crashes in browser.** `fs.readFileSync` at module load time. Switch to pdfjs-dist. But pdfjs-dist produces cleaner text (spaces between fields, proper Unicode), so every regex built against pdf-parse's glued output is wrong. Both parsers rewritten. Key lesson: test extraction in the same environment the parser will run in.
 
-**1:65 — Context exhaustion #2** (compaction). Parsers survive compaction and are committed.
+**2:45 — Context exhaustion #2** (compaction). Parsers survive compaction and are committed.
 
-**1:75 — Term mapping errors on import.** `CREDIT_TRANSFER` and `BANK_TRANSFER` aren't valid terms — should be `BANK_TRANSFER_IN` and `BANK_TRANSFER_OUT`. Fixed.
+**2:55 — Term mapping errors on import.** `CREDIT_TRANSFER` and `BANK_TRANSFER` aren't valid terms — should be `BANK_TRANSFER_IN` and `BANK_TRANSFER_OUT`. Fixed.
 
-**1:80 — Content-based PDF detection.** Filename-based detection (`CP_REL-*` for Yuh, `PAYSLIP_RCH_*` for Roche) was too brittle. Switched to detecting by PDF content (signature strings). Also fixed detached ArrayBuffer from double pdfjs-dist extraction.
+**3:00 — Content-based PDF detection.** Filename-based detection (`CP_REL-*` for Yuh, `PAYSLIP_RCH_*` for Roche) was too brittle. Switched to detecting by PDF content (signature strings). Also fixed detached ArrayBuffer from double pdfjs-dist extraction.
 
-**1:90 — Yuh import working.** 15 items imported, 1 duplicate key error (the batch upsert race condition).
+**3:10 — Yuh import working.** 15 items imported, 1 duplicate key error (the batch upsert race condition).
 
-**1:90–2:10 — File picker debugging.** macOS/Google Drive ghost: some files greyed out in the file picker regardless of accept attribute, xattr, or copying to new folders. Diagnosed as OS-level file metadata quirk. Not our bug.
+**3:10–3:30 — File picker debugging.** macOS/Google Drive ghost: some files greyed out in the file picker regardless of accept attribute, xattr, or copying to new folders. Diagnosed as OS-level file metadata quirk. Not our bug.
 
-**2:10–2:55 — Transaction filters, the hard way.** First version (toolbar dropdowns) committed quickly. User requested column-level filtering with operators (contains, greater than, empty, etc.). Implemented as column header popovers. Then: WIP's query endpoint returned inactive document versions → duplicate key warnings → attempted `latest_only` → 422 error (not supported on query endpoint) → client-side dedup hack → user pushback ("what are duplicate versions?") → escalated to WIP-Claude → root cause: queryDocuments defaulted to `status=None` instead of `status=ACTIVE` → WIP-Claude fixed it → app cleaned up.
+**3:30–4:15 — Transaction filters, the hard way.** First version (toolbar dropdowns) committed quickly. User requested column-level filtering with operators (contains, greater than, empty, etc.). Implemented as column header popovers. Then: WIP's query endpoint returned inactive document versions → duplicate key warnings → attempted `latest_only` → 422 error (not supported on query endpoint) → client-side dedup hack → user pushback ("what are duplicate versions?") → escalated to WIP-Claude → root cause: queryDocuments defaulted to `status=None` instead of `status=ACTIVE` → WIP-Claude fixed it → app cleaned up.
 
-**2:55–2:70 — Filter UX iteration.** Original search bar was removed when column filters were added — user unhappy. Restored both: toolbar filters for quick access (search, account, type, date range), column popovers for advanced filtering (operators, empty/not-empty). Popover layout was "three horizontal boxes, ugly" — reworked to vertical stack. Final response from user: "Perfect! You rock!!!"
+**4:15–4:30 — Filter UX iteration.** Original search bar was removed when column filters were added — user unhappy. Restored both: toolbar filters for quick access (search, account, type, date range), column popovers for advanced filtering (operators, empty/not-empty). Popover layout was "three horizontal boxes, ugly" — reworked to vertical stack. Final response from user: "Perfect! You rock!!!"
 
 ### End of Day 2 Build Session
 
