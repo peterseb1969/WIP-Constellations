@@ -395,7 +395,6 @@ export function TransactionsPage() {
       page_size: pageSize,
       sort_by: 'data.booking_date',
       sort_order: 'desc',
-      latest_only: true,
     },
     { enabled: !!templateId },
   )
