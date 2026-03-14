@@ -15,13 +15,19 @@ See [Two Theses, One Experiment](docs/WIP_TwoTheses.md) for the full argument.
 This is a personal experiment, not a product. The app supports a random combination of bank statement formats and payslip layouts that happened to be useful for testing. The parsers are brittle by design: they work for a specific selection of input files and will almost certainly fail on yours. Nothing here is intended to be reusable, general-purpose, or production-ready. If you find the *approach* interesting, look at the process and the WIP platform — not the app code.
 
 > [!CAUTION]
-> **Data Privacy — only relevant if you connect a cloud AI via MCP.**
+> **Data Privacy — when cloud AI meets personal data.**
 >
-> WIP and the constellation apps run entirely on your local machine. Without MCP, your data never leaves your network — the apps talk to WIP on `localhost`, no external calls.
+> WIP and the constellation apps run entirely on your local machine. Without any cloud AI involvement, your data never leaves your network — the apps talk to WIP on `localhost`, no external calls.
 >
-> The privacy concern arises **only** when you connect a cloud AI (Claude, ChatGPT, etc.) to WIP's MCP server to query your data conversationally. In that scenario, whatever data the AI needs to answer your question — transaction amounts, counterparty names, IBANs, salary details — is sent to the AI provider's servers for processing.
+> The privacy concern arises when you use a cloud AI (Claude, ChatGPT, etc.) anywhere in the workflow. There are three channels to be aware of:
 >
-> If you don't use MCP with a cloud AI, this does not apply to you. If you do, the tradeoff is: local data sovereignty at rest, cloud processing in transit. The structural solution exists — local AI models (via Ollama or similar) speak the same MCP protocol and keep everything on-device. WIP's architecture is ready for that today.
+> 1. **Development context.** When a cloud AI builds or debugs parsers, it reads your sample data files — bank statements, payslips, CSVs — to understand the format. Real financial data enters the AI's context window. This is the channel people miss: it happens before MCP is even involved.
+>
+> 2. **Development-time MCP queries.** When the AI calls WIP's MCP tools to test what it built (`query_documents`, `search`, etc.), actual data from your WIP instance is returned into the AI's context. Transaction amounts, counterparty names, IBANs, salary details — whatever the query matches.
+>
+> 3. **Conversational queries.** The "talk to your data" use case — asking a cloud AI questions about your finances via MCP. This is the same mechanism as channel 2, but now it's the feature, not a development side-effect.
+>
+> **The structural solution exists.** Local AI models (via Ollama or similar) speak the same MCP protocol and can handle all three channels without data leaving your machine. WIP's architecture supports this today. The tradeoff is capability — local models are currently less capable than cloud models.
 >
 > **This should be a conscious choice, not an invisible default.**
 
