@@ -1,8 +1,0 @@
-:3001 {
-  root * /srv
-  try_files {path} /index.html
-  file_server
-  handle /health {
-    respond "OK" 200
-  }
-}

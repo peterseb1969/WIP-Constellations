@@ -444,4 +444,53 @@ Not Siri. Not Alexa. Not ChatGPT with uploaded files. A persistent, growing, val
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 011, 012, etc.) and include date, category, phase, and severity.*
+## Entry 011 — 2026-03-14
+
+**Category:** Experimental methodology
+**Phase:** Between Day 1 and Day 2
+**Severity:** N/A (not a bug — a process decision)
+
+### What happened
+
+At the end of Day 1, the Statement Manager was working: importing UBS CSVs and Yuh PDFs, displaying transactions, managing accounts and payslips. The decision was made to discard the app code and rebuild from scratch on Day 2.
+
+### Why
+
+The app was not rebuilt because it was broken. It was rebuilt because it was built against an evolving process. During Day 1:
+
+- CLAUDE.md was revised multiple times
+- Slash commands were added mid-session (/improve, /document, /export-model, /bootstrap)
+- The UX approval gate was defined after the UI was already built
+- The documentation standard was created after the app was running
+- The Vite proxy configuration was discovered by exploration, then documented as guidance
+- The MCP server’s schemas were corrected during development
+- The @wip/client library grew new capabilities mid-build
+- The data model seed files were conceived after the data model was already in WIP
+
+The resulting app was a product of the calibration process, not of the calibrated process. Testing the current process requires running it clean.
+
+### What was preserved
+
+Everything durable:
+- The data model in WIP (5 terminologies, 4 templates) — stable and tested
+- Seed files in `data-model/` — can reproduce the model on any instance
+- CLAUDE.md, 10 slash commands, dev guardrails — finalized
+- MCP server with generated schemas — proven
+- @wip/client and @wip/react — proven
+- 10 lessons learned entries — documented
+
+### What was discarded
+
+Only the app code (the React UI, import parsers, components). This is the one artifact that was built before the process, guardrails, and libraries stabilized.
+
+### Lessons
+
+1. **Distinguish calibration from measurement.** Day 1 was calibration: building and tuning the instruments (process, guardrails, tools) while simultaneously producing a result (the app). The result is tainted by the calibration. Day 2 is measurement: running the stabilized instruments to see what they produce. Only the measurement counts as evidence.
+
+2. **Rebuilding is cheap when the foundation is durable.** The data model survives in WIP. The seed files survive in git. The process survives in CLAUDE.md and the commands. The practical lessons survive in LESSONS_LEARNED.md. Only the most ephemeral artifact — UI code — needs to be regenerated. The architecture is designed so that the cheapest thing to rebuild is the thing most likely to need rebuilding.
+
+3. **This validates the process’s layered durability model.** WIP stores data (survives everything). Git stores code and config (survives context resets). LESSONS_LEARNED.md stores experience (survives session boundaries). Only in-flight, uncommitted code is truly ephemeral. The restart proves that the layers work: nothing of lasting value was lost.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 012, 013, etc.) and include date, category, phase, and severity.*

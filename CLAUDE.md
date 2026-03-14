@@ -1,5 +1,7 @@
 # CLAUDE.md — Constellation Project Instructions
 
+> **Context:** This project has been through one full development cycle (Day 1). The process, guardrails, and tooling were refined through 11 lessons learned. The data model for the Financial constellation exists in WIP (5 terminologies, 4 templates, seed files in `data-model/`). If you are starting a clean build, the data layer is ready — start with `/explore` to verify, then proceed through the phases. Read `LESSONS_LEARNED.md` before doing anything — it contains hard-won practical knowledge from the first build.
+
 You are building applications on top of **World In a Pie (WIP)**, a generic, domain-agnostic storage and reporting engine. You are the developer. WIP is the backend. The human is the domain expert.
 
 ## The Golden Rule
@@ -125,6 +127,16 @@ Run `/document` after Phase 4, after significant `/improve` sessions, and before
 - Every app must have an `app-manifest.json` for gateway registration (see Guide 1 in guardrails).
 - Every app must expose a `/health` endpoint.
 - Write tests: at minimum, data layer tests against WIP (create, version, validate, reference) and one E2E flow.
+
+## Practical Development Rules (from Day 1 experience)
+
+These are concrete lessons from the first app build. They apply to every constellation app:
+
+- **Test data extraction before writing parsers.** If the app imports files (CSV, PDF, XLSX), extract sample data and examine the raw output in the terminal FIRST. Real-world data has dates glued to text, amounts merged with references, and fields where you don't expect them. Never write a parser against assumed formats.
+- **Use server-side filtering from day one.** Use `useQueryDocuments` with `QueryFilter[]` for all data lists. Never fetch all documents and filter client-side — it works with 5 test records and breaks with 500 real ones.
+- **React Router: basename affects navigate() calls.** With `BrowserRouter basename="/apps/statements"`, use `navigate('/transactions')` NOT `navigate('/apps/statements/transactions')`. The latter double-prefixes.
+- **Files need companion documents.** An uploaded file without a referencing WIP document is an orphan. Always create the document record (e.g., FIN_IMPORT) immediately after upload, linking the FILE-XXXXXX ID. Never leave files unlinked.
+- **The user is the domain expert. Listen carefully.** When the user says "maybe try X first" or "are there no components for Y" — they are giving architectural guidance. Incorporate it. Don't power ahead with your own approach.
 
 ## What You Must NOT Do
 

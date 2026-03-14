@@ -50,16 +50,5 @@ If any MCP tool call fails:
 - Diagnose: is it a data model issue (go back to Phase 2) or a WIP issue (investigate)?
 - Ask the user how to proceed
 
-## Step 7: Export data model to seed files
-
-**This step is mandatory.** Run `/export-model` to capture everything just created as declarative seed files in `data-model/`. Then commit:
-
-```
-git add data-model/
-git commit -m "Data model: N terminologies, M templates for [app name]"
-```
-
-Without this step, the data model exists only in the running WIP instance and cannot be reproduced on another instance, by another developer, or after a database loss.
-
 ## Transition to Phase 4
-Once Phase 3 is complete, verified, and exported to seed files, the development-time work with MCP tools is done. Phase 4 shifts to writing application code that uses `@wip/client` and `@wip/react` at runtime. Read `docs/WIP_DevGuardrails.md` before proceeding.
+Once Phase 3 is complete and verified, the development-time work with MCP tools is done. Phase 4 shifts to writing application code that uses `@wip/client` and `@wip/react` at runtime. Read `docs/WIP_DevGuardrails.md` before proceeding.

@@ -144,6 +144,7 @@ The `.claude/commands/` directory defines custom commands that guide Claude thro
 | `/implement` | After data model is approved | Phase 3: use MCP tools to create terminologies, templates, test documents |
 | `/build-app` | After data layer is verified | Phase 4: scaffold app, build UI with @wip/client, containerize, test |
 | `/wip-status` | Start of any session | Quick inventory via MCP tools — rebuilds session awareness |
+| `/improve` | After Phase 4 is complete | Iterative fixes, UX refinement, feature additions — with rules to prevent waste and regression |
 | `/add-app` | Adding a 2nd, 3rd, etc. app | Reuse-aware process for incremental constellation growth |
 
 **Usage in Claude Code:**

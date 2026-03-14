@@ -83,8 +83,25 @@ Follow Guide 5 (Data Entry Patterns):
 - For specialized UIs (e.g., receipt scanning): build custom forms using @wip/client types
 - Term fields → searchable dropdown populated from `useTerminology()`
 - Reference fields → search input using `wip.utils.resolveReference()`
-- File fields → upload zone using `useUploadFile()`, then link FILE-XXXXXX to document
+- File fields → upload zone using `useUploadFile()`, then link FILE-XXXXXX to document immediately (never leave files unlinked — they become orphans)
 - Always handle: required field validation, term resolution errors, reference resolution errors
+
+### Step 3b: Build import flows (if applicable)
+If the app imports files (CSV, PDF, XLSX):
+
+**Before writing any parser code:**
+1. Take a real sample file from the user
+2. Run the extraction library against it (e.g., papaparse for CSV, pdf-parse for PDF)
+3. Print the raw output to the terminal
+4. Examine it carefully — real data has glued fields, missing delimiters, unexpected encodings
+
+**Only then** write the parser, mapping raw extracted fields to WIP template fields. Document every mapping in IMPORT_FORMATS.md as you go, not after the fact.
+
+Common traps from Swiss bank data:
+- UBS CSVs: counterparty names have trailing quotes and embedded addresses
+- PDF extraction: dates glue to adjacent text (e.g., "06.01.2026Zahlung"), amounts merge with reference numbers
+- Multi-currency accounts: the currency field may be per-transaction, not per-account
+- Amount conventions vary: some sources use separate debit/credit columns, others use signed amounts
 
 ### Step 4: Build list/table views
 - Use `useDocuments(templateCode, filters)` for paginated document lists
