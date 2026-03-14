@@ -395,6 +395,7 @@ export function TransactionsPage() {
       page_size: pageSize,
       sort_by: 'data.booking_date',
       sort_order: 'desc',
+      latest_only: true,
     },
     { enabled: !!templateId },
   )
@@ -485,21 +486,21 @@ export function TransactionsPage() {
                   const summary = filterSummary(col.key)
                   return (
                     <th key={col.key} className="text-left px-4 py-2 font-medium text-text-muted whitespace-nowrap relative">
-                      <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setOpenFilter(openFilter === col.key ? null : col.key)}
+                        className="flex items-center gap-1.5 hover:text-primary group w-full"
+                        title={`Filter ${col.label}`}
+                      >
                         <span>{col.label}</span>
-                        <button
-                          onClick={() => setOpenFilter(openFilter === col.key ? null : col.key)}
-                          className={`p-0.5 rounded hover:bg-gray-200 ${hasFilter ? 'text-primary' : 'text-gray-400 opacity-50 hover:opacity-100'}`}
-                          title={`Filter ${col.label}`}
-                        >
-                          {hasFilter ? <Filter size={12} /> : <ChevronDown size={12} />}
-                        </button>
-                      </div>
-                      {summary && (
-                        <div className="text-[10px] font-normal text-primary truncate max-w-[120px]" title={summary}>
-                          {summary}
-                        </div>
-                      )}
+                        <span className={`inline-flex items-center ${hasFilter ? 'text-primary' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                          {hasFilter ? <Filter size={14} /> : <ChevronDown size={14} />}
+                        </span>
+                        {summary && (
+                          <span className="text-[10px] font-normal text-primary bg-primary/10 px-1.5 py-0.5 rounded truncate max-w-[100px]">
+                            {summary}
+                          </span>
+                        )}
+                      </button>
                       {openFilter === col.key && (
                         <ColumnFilterPopover
                           column={col}
