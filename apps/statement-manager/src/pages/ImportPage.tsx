@@ -115,7 +115,9 @@ function ImportResult({ result }: { result: { created: number; skipped: number; 
   return (
     <div className={cn(
       'rounded-md p-4 mb-4 text-sm',
-      result.errors.length === 0 ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger',
+      result.errors.length === 0
+        ? 'bg-success/10 text-success'
+        : result.created > 0 ? 'bg-accent/10 text-accent' : 'bg-danger/10 text-danger',
     )}>
       <p className="font-medium">
         {result.errors.length === 0
@@ -245,21 +247,25 @@ function TransactionPreview({
       const fileEntity = await uploadFile.mutateAsync({ file, filename: file.name })
 
       // 3. Create FIN_IMPORT record
-      await createImport.mutateAsync({
-        template_id: importTemplate.template_id,
-        data: {
-          filename: file.name,
-          file: fileEntity.file_id,
-          import_date: new Date().toISOString(),
-          document_type: 'BANK_STATEMENT',
-          parser: parserType === 'ubs-csv' ? 'ubs_csv' : 'yuh_pdf',
-          account: effectiveAccountId,
-          transactions_created: totalCreated,
-          period_from: period.from,
-          period_to: period.to,
-          status: errors.length === 0 ? 'success' : totalCreated > 0 ? 'partial' : 'failed',
-        },
-      })
+      try {
+        await createImport.mutateAsync({
+          template_id: importTemplate.template_id,
+          data: {
+            filename: file.name,
+            file: fileEntity.file_id,
+            import_date: new Date().toISOString(),
+            document_type: 'BANK_STATEMENT',
+            parser: parserType === 'ubs-csv' ? 'ubs_csv' : 'yuh_pdf',
+            account: effectiveAccountId,
+            transactions_created: totalCreated,
+            period_from: period.from,
+            period_to: period.to,
+            status: errors.length === 0 ? 'success' : totalCreated > 0 ? 'partial' : 'failed',
+          },
+        })
+      } catch (importErr) {
+        errors.push(`Import record: ${importErr instanceof Error ? importErr.message : 'Failed to save import record'}`)
+      }
 
       setResult({ created: totalCreated, skipped: skippedCount, errors })
       if (errors.length === 0) setTimeout(onImported, 2000)
