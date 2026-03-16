@@ -18,11 +18,12 @@ fail=0
 echo "Bootstrapping WIP at $WIP"
 echo ""
 
-# --- Terminologies (import endpoint accepts terms inline) ---
+# --- Terminologies (import endpoint accepts export format: {terminology: {...}, terms: [...]}) ---
 echo "=== Terminologies ==="
 for f in "$SCRIPT_DIR"/terminologies/*.json; do
   name=$(basename "$f" .json)
-  response=$(curl $CURL_OPTS -w "\n%{http_code}" -X POST "$WIP/api/def-store/terminologies/import" \
+  response=$(curl $CURL_OPTS -w "\n%{http_code}" -X POST \
+    "$WIP/api/def-store/import-export/import?format=json&skip_duplicates=true" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $KEY" \
     -d @"$f" 2>/dev/null)
@@ -43,7 +44,8 @@ echo ""
 echo "=== Templates ==="
 for f in "$SCRIPT_DIR"/templates/*.json; do
   name=$(basename "$f" .json)
-  response=$(curl $CURL_OPTS -w "\n%{http_code}" -X POST "$WIP/api/template-store/templates" \
+  response=$(curl $CURL_OPTS -w "\n%{http_code}" -X POST \
+    "$WIP/api/template-store/templates" \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $KEY" \
     -d "[$(<"$f")]" 2>/dev/null)

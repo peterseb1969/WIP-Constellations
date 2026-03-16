@@ -1,18 +1,20 @@
 {
-  "value": "FIN_PAYSLIP_LINE_CATEGORY",
-  "label": "Payslip Line Category",
-  "description": "Categories for payslip line items: earnings, social contributions, pension, deductions",
+  "terminology": {
+    "value": "FIN_PAYSLIP_LINE_CATEGORY",
+    "label": "Payslip Line Category",
+    "description": "Categories for payslip line items: earnings, social contributions, pension, deductions"
+  },
   "terms": [
-    { "value": "ALLOWANCE", "label": "Allowances", "aliases": [] },
-    { "value": "BASE_SALARY", "label": "Base Salary", "aliases": [] },
-    { "value": "BENEFIT_DEDUCTION", "label": "Benefit Deductions", "aliases": [] },
-    { "value": "BONUS", "label": "Bonus / Award", "aliases": [] },
-    { "value": "ESPP", "label": "Employee Stock Purchase", "aliases": [] },
-    { "value": "LTI", "label": "Long-Term Incentive", "aliases": [] },
-    { "value": "NON_CASH_BENEFIT", "label": "Non-Cash Benefits / Declarations", "aliases": [] },
-    { "value": "PENSION", "label": "Pension Fund Contributions", "aliases": [] },
-    { "value": "SOCIAL_CONTRIBUTION", "label": "Social Contributions (AHV, ALV)", "aliases": [] },
-    { "value": "SUPPLEMENTARY_PENSION", "label": "Supplementary Pension (ZV/SPS)", "aliases": [] },
-    { "value": "VOLUNTARY_SAVING", "label": "Voluntary Savings", "aliases": [] }
+    { "value": "ALLOWANCE", "label": "Allowances" },
+    { "value": "BASE_SALARY", "label": "Base Salary" },
+    { "value": "BENEFIT_DEDUCTION", "label": "Benefit Deductions" },
+    { "value": "BONUS", "label": "Bonus / Award" },
+    { "value": "ESPP", "label": "Employee Stock Purchase" },
+    { "value": "LTI", "label": "Long-Term Incentive" },
+    { "value": "NON_CASH_BENEFIT", "label": "Non-Cash Benefits / Declarations" },
+    { "value": "PENSION", "label": "Pension Fund Contributions" },
+    { "value": "SOCIAL_CONTRIBUTION", "label": "Social Contributions (AHV, ALV)" },
+    { "value": "SUPPLEMENTARY_PENSION", "label": "Supplementary Pension (ZV/SPS)" },
+    { "value": "VOLUNTARY_SAVING", "label": "Voluntary Savings" }
   ]
 }

@@ -1,11 +1,13 @@
 {
-  "value": "FIN_ACCOUNT_TYPE",
-  "label": "Financial Account Type",
-  "description": "Types of financial accounts: bank accounts, credit cards, share depots, employers",
+  "terminology": {
+    "value": "FIN_ACCOUNT_TYPE",
+    "label": "Financial Account Type",
+    "description": "Types of financial accounts: bank accounts, credit cards, share depots, employers"
+  },
   "terms": [
     { "value": "CHECKING", "label": "Checking Account", "aliases": ["Privatkonto", "Girokonto"] },
     { "value": "CREDIT_CARD", "label": "Credit Card", "aliases": ["Kreditkarte"] },
-    { "value": "EMPLOYER", "label": "Employer", "aliases": [] },
+    { "value": "EMPLOYER", "label": "Employer" },
     { "value": "SAVINGS", "label": "Savings Account", "aliases": ["Sparkonto"] },
     { "value": "SHARE_DEPOT", "label": "Share Depot / Brokerage", "aliases": ["Wertschriftendepot", "Depot"] }
   ]
