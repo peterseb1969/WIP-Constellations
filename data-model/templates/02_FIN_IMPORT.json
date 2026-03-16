@@ -9,7 +9,7 @@
     "tags": ["import", "file"]
   },
   "fields": [
-    { "name": "file", "label": "Uploaded File", "type": "file", "mandatory": true, "file_config": { "allowed_types": ["application/pdf", "text/csv"], "max_size_mb": 50.0, "multiple": false } },
+    { "name": "file", "label": "Uploaded File", "type": "file", "mandatory": true, "file_config": { "allowed_types": ["application/pdf", "text/csv", "application/vnd.ms-excel", "application/octet-stream"], "max_size_mb": 50.0, "multiple": false } },
     { "name": "filename", "label": "Original Filename", "type": "string", "mandatory": true },
     { "name": "import_date", "label": "Import Date", "type": "datetime", "mandatory": true },
     { "name": "document_type", "label": "Document Type", "type": "term", "mandatory": true, "terminology_ref": "IMPORT_DOCUMENT_TYPE" },
