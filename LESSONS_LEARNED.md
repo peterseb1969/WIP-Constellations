@@ -662,4 +662,86 @@ This is the intellectual equivalent of Entry 001’s cross-audit: two perspectiv
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 018, 019, etc.) and include date, category, phase, and severity.*
+## Entry 018 — 2026-03-16
+
+**Category:** Deployment gap — seed files coupled to MCP
+**Phase:** Deployment
+**Severity:** High (deployment without Claude is impossible)
+
+### What happened
+
+The seed files (terminologies and templates) used a custom format designed for the `/bootstrap` MCP command to translate. The format used `code` instead of `value`, embedded terms inline in a flat structure, and assumed the MCP server would restructure the data before calling the API.
+
+When deploying to the Raspberry Pi without a Claude instance, the seed files couldn’t be loaded with simple curl commands. The API rejected them: wrong field names, wrong structure, wrong endpoint.
+
+### Root cause
+
+The seed file format was designed for developer convenience during the MCP-driven build process, not for standalone deployment. Nobody tested deployment without Claude until Day 4.
+
+### Fix
+
+1. Reformatted all seed files to match the WIP API’s import/export format (`value` instead of `code`, `{ "terminology": {...}, "terms": [...] }` wrapping)
+2. Created `data-model/bootstrap.sh` — a shell script that loads all seed files via curl
+3. Verified the format against a live WIP instance using MCP before pushing
+
+### Lesson
+
+**If a distributable container can’t bootstrap its own data model without an AI assistant, it’s not distributable.** Seed files must match the actual API format. The bootstrap process must be a script, not a Claude session. Test deployment on fresh hardware, not just on the development machine.
+
+---
+
+## Entry 019 — 2026-03-16
+
+**Category:** Platform bug — template cache ignores version lifecycle
+**Phase:** Deployment / runtime
+**Severity:** High (template updates have no effect without service restart)
+
+### What happened
+
+The document store permanently caches template definitions by `template_id`. When `template_version` is omitted from a document creation request, the cache key is just `template_id` — so the first version fetched is returned forever, even after that version is deactivated and a newer version is created.
+
+This caused a 25-minute debugging session: the FIN_IMPORT template’s v1 had `file_config: { allowed_types: ["application/pdf"] }`. After creating v2 with CSV support and deactivating v1, the document store still validated against the cached v1. Only a service restart cleared the cache.
+
+### Root cause
+
+The cache assumes templates are immutable — which is true for a specific (template_id, version) pair, but not for the "latest active version" resolution. The unversioned cache key conflates two different operations: "give me this exact template" (immutable, cacheable forever) and "give me the latest active version" (dynamic, should not be permanently cached).
+
+### Fix
+
+WIP-Claude committed a fix: unversioned lookups are not permanently cached (or use a short TTL). Versioned lookups remain permanently cached. Testing pending.
+
+### Lesson
+
+1. **Always pass `template_version` explicitly.** The app now includes `template_version` from the resolved template in every document creation call. This is defensive — even after the cache fix, pinning the version makes behaviour deterministic.
+2. **"Immutable" has scope.** A specific template version is immutable. "The latest version of this template" is not. Cache invalidation must respect the difference.
+3. **Deploy on fresh hardware before declaring done.** This bug existed on the Mac but was invisible because the template was created correctly the first time. Only the Pi’s bootstrap-then-update sequence exposed it.
+
+---
+
+## Entry 020 — 2026-03-16
+
+**Category:** Process gap — AI using raw curl instead of client library
+**Phase:** Deployment / operational
+**Severity:** Medium (wastes time, increases error surface)
+
+### What happened
+
+Constellation-Claude needed to deactivate a template version on the Pi. Instead of using `@wip/client` (which handles WIP’s bulk-first convention, URL construction, and authentication), it guessed at curl endpoints. Four attempts failed: `DELETE /templates/{id}`, `DELETE /templates/{id}?version=1`, `DELETE /templates/{id}/versions/1`, direct port access. All returned 405 Method Not Allowed.
+
+The correct endpoint is `DELETE /templates` with a JSON body array — WIP’s bulk-first convention. `@wip/client` handles this transparently: `client.templates.deleteTemplate(id, { version: 1 })`.
+
+### Root cause
+
+CLAUDE.md says "never change WIP" but doesn’t provide guidance on operational tasks. When the AI needs to perform a one-off WIP operation, the natural instinct is to use curl — but WIP’s API conventions (bulk-first, no ID in URL for writes) are unintuitive without the library.
+
+### Fix
+
+CLAUDE.md updated with WIP Access Rules section: always use `@wip/client` for WIP operations, even ad-hoc ones. Write a small Node script if needed — don’t guess at curl endpoints.
+
+### Lesson
+
+**The client library exists for a reason.** WIP’s API conventions are consistent but unconventional. Any consumer that bypasses the library will waste time rediscovering the conventions. This applies to AI assistants as much as human developers.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 021, 022, etc.) and include date, category, phase, and severity.*

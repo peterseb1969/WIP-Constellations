@@ -110,6 +110,24 @@ The tools to do data modeling right have always existed. PostgreSQL supports sch
 
 WIP’s structural constraints prevent this class of failure at the platform level. An application — whether built by a human or an AI — cannot produce the most common data quality disasters because the platform won’t let it. The constraint is the guardrail. The guardrail is the feature.
 
+## The Raspberry Pi benchmark
+
+On Day 4 of the experiment, WIP was deployed from zero on a Raspberry Pi 5 (8GB RAM, SSD) and timed:
+
+| Step | Time |
+|------|------|
+| Clone repository | 1 second |
+| Full deployment (all modules, local builds) | 3 minutes 9 seconds |
+| Seed 57,400 documents across 25 templates | 5 minutes 32 seconds |
+| Build Statement Manager container | 49.6 seconds |
+| Bootstrap data model (6 terminologies, 5 templates) | instant |
+
+**Sustained throughput: 172.7 documents per second** — each document validated against its template, registered in the Registry, stored in MongoDB, and streamed to PostgreSQL for reporting.
+
+The SSD is the key enabler. Running on an SD card would significantly degrade throughput and is not recommended beyond evaluation. Pi 5 with 8GB RAM is the minimum recommended configuration.
+
+This is not a marketing claim. It is a measured benchmark, reproducible by following the setup script and running the performance seed profile.
+
 ## The MCP server: closing the last gap
 
 WIP’s structural constraints discipline what the AI stores. But there remained a gap in how the AI interacts with WIP during development: composing raw HTTP calls, managing bulk request/response envelopes, and parsing error responses. These are mechanical tasks where mistakes are easy and debugging is tedious.
