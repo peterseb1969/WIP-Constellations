@@ -117,7 +117,7 @@ function AccountForm({ onClose }: { onClose: () => void }) {
     if (form.swift_bic.trim()) data.swift_bic = form.swift_bic.trim()
     if (form.description.trim()) data.description = form.description.trim()
 
-    createDocument.mutate({ template_id: templateId, data })
+    createDocument.mutate({ template_id: templateId, template_version: templateData?.version, data })
   }
 
   function updateField(field: keyof AccountFormData, value: string) {

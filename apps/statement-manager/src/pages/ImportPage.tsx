@@ -219,6 +219,7 @@ function TransactionPreview({
       // 1. Create transactions in batches
       const docs: CreateDocumentRequest[] = wipTransactions.map((data) => ({
         template_id: txTemplate.template_id,
+        template_version: txTemplate.version,
         data: { ...data, account: effectiveAccountId },
       }))
 
@@ -250,6 +251,7 @@ function TransactionPreview({
       try {
         await createImport.mutateAsync({
           template_id: importTemplate.template_id,
+          template_version: importTemplate.version,
           data: {
             filename: file.name,
             file: fileEntity.file_id,
@@ -420,6 +422,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
       const payslipData = toWipPayslip(parsed, effectiveAccountId)
       const payslipResult = await createDoc.mutateAsync({
         template_id: payslipTemplate.template_id,
+        template_version: payslipTemplate.version,
         data: payslipData,
       })
       const payslipDocId = payslipResult.document_id as string
@@ -427,6 +430,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
       // 2. Create line items
       const lineDocs: CreateDocumentRequest[] = parsed.lines.map((line) => ({
         template_id: lineTemplate.template_id,
+        template_version: lineTemplate.version,
         data: toWipPayslipLine(line, payslipDocId),
       }))
 
