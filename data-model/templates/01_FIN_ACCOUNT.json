@@ -1,5 +1,5 @@
 {
-  "code": "FIN_ACCOUNT",
+  "value": "FIN_ACCOUNT",
   "label": "Financial Account",
   "description": "A bank account, credit card, share depot, or employer for payslip linkage",
   "identity_fields": ["iban"],

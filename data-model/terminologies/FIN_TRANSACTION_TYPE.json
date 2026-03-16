@@ -1,5 +1,5 @@
 {
-  "code": "FIN_TRANSACTION_TYPE",
+  "value": "FIN_TRANSACTION_TYPE",
   "label": "Transaction Type",
   "description": "How a financial transaction was executed (debit card, bank transfer, e-bill, etc.)",
   "terms": [

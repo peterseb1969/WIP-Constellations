@@ -1,5 +1,5 @@
 {
-  "code": "FIN_IMPORT",
+  "value": "FIN_IMPORT",
   "label": "Financial Import",
   "description": "Tracks uploaded files (bank statements, payslips) with parsing metadata and a reference to the stored file.",
   "identity_fields": ["filename"],

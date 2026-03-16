@@ -1,5 +1,5 @@
 {
-  "code": "FIN_TRANSACTION_CATEGORY",
+  "value": "FIN_TRANSACTION_CATEGORY",
   "label": "Transaction Category",
   "description": "Spending and income categories for financial transaction analysis",
   "terms": [

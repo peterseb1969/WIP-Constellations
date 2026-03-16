@@ -1,5 +1,5 @@
 {
-  "code": "FIN_PAYSLIP",
+  "value": "FIN_PAYSLIP",
   "label": "Pay Slip",
   "description": "Monthly pay slip summary from an employer",
   "identity_fields": ["employer", "period"],

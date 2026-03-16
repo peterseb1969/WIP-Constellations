@@ -1,5 +1,5 @@
 {
-  "code": "FIN_PAYSLIP_LINE_CATEGORY",
+  "value": "FIN_PAYSLIP_LINE_CATEGORY",
   "label": "Payslip Line Category",
   "description": "Categories for payslip line items: earnings, social contributions, pension, deductions",
   "terms": [

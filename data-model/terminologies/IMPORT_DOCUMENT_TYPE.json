@@ -1,5 +1,5 @@
 {
-  "code": "IMPORT_DOCUMENT_TYPE",
+  "value": "IMPORT_DOCUMENT_TYPE",
   "label": "Import Document Type",
   "description": "Type of document being imported (bank statement, payslip, etc.)",
   "terms": [

@@ -1,5 +1,5 @@
 {
-  "code": "FIN_CURRENCY",
+  "value": "FIN_CURRENCY",
   "label": "Currency",
   "description": "ISO 4217 currency codes for the Personal Finance constellation",
   "terms": [

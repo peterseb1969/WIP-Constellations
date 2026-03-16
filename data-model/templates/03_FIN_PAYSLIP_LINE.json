@@ -1,5 +1,5 @@
 {
-  "code": "FIN_PAYSLIP_LINE",
+  "value": "FIN_PAYSLIP_LINE",
   "label": "Pay Slip Line Item",
   "description": "Individual earning or deduction line item from a pay slip",
   "identity_fields": ["payslip", "code"],

@@ -1,5 +1,5 @@
 {
-  "code": "FIN_ACCOUNT_TYPE",
+  "value": "FIN_ACCOUNT_TYPE",
   "label": "Financial Account Type",
   "description": "Types of financial accounts: bank accounts, credit cards, share depots, employers",
   "terms": [

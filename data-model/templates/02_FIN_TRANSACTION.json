@@ -1,5 +1,5 @@
 {
-  "code": "FIN_TRANSACTION",
+  "value": "FIN_TRANSACTION",
   "label": "Financial Transaction",
   "description": "A normalized financial transaction from any bank source (UBS CSV, Yuh PDF, etc.)",
   "identity_fields": ["account", "source_reference"],
