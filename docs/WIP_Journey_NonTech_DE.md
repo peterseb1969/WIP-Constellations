@@ -209,6 +209,22 @@ In der Zwischenzeit liegt die Entscheidung bei dir. Du kannst WIP-Apps nutzen, u
 
 Wir sagen dir das lieber jetzt, als dass du es später selbst herausfindest. Vertrauen entsteht durch Ehrlichkeit, nicht durch Kleingedrucktes.
 
+### Die Einschränkung ist das Feature
+
+Es gibt ein überraschendes Argument dafür, warum WIP funktioniert — eines, das erst klar wird, wenn man genug gescheiterte Software-Projekte gesehen hat.
+
+Jeder Entwickler — ob Mensch oder KI — weiss, dass man sein Datenmodell sorgfältig entwerfen sollte, bevor man Code schreibt. Definieren, was jeden Datensatz eindeutig macht. Eingaben validieren. Einheitliches Vokabular verwenden. Dagegen widerspricht niemand.
+
+In der Praxis macht es trotzdem niemand.
+
+Unter Zeitdruck wird beim Datenmodell gespart. «Wir korrigieren die Wertelisten später.» «Nehmen wir erstmal ein Freitextfeld.» «Validierung kommt im nächsten Sprint.» Diese Abkürzungen häufen sich unsichtbar an, bis sie explodieren — doppelte Datensätze, inkonsistente Kategorien, kaputte Verweise, Daten, die nicht abgefragt werden können, weil jede App sie anders gespeichert hat.
+
+WIP macht diese Abkürzungen unmöglich. Du kannst keine Daten speichern, ohne eine Vorlage (den Bauplan). Du kannst keine Vorlage erstellen, ohne festzulegen, was einen Datensatz eindeutig macht. Du kannst keinen Freitext verwenden, wo ein kontrolliertes Vokabular existiert. Das System lässt dich den schwierigen Teil nicht überspringen — weil der schwierige Teil immer derjenige ist, der übersprungen wird, und die Konsequenzen immer teuer sind.
+
+Für KI-gestützte Entwicklung ist das noch wichtiger. Eine KI, die von Null anfangt, produziert schön aussehende Software mit unsichtbaren Datenkatastrophen darunter. Eine KI, die auf WIP aufbaut, wird strukturell an den häufigsten Fehlern gehindert — weil WIPs Einschränkungen die Leitplanken sind, und die KI nicht um sie herum kann.
+
+**Die Disziplin ist keine Einschränkung. Sie ist der ganze Punkt.**
+
 ### Der Zinseszins-Effekt
 
 Das macht den Zinseszins-Effekt noch kraftvoller als ursprünglich beschrieben. Wir haben eine App. Die Konstellationsthese sagt, die Magie beginnt bei drei oder mehr Apps, wenn die Querverbindungen zwischen den Datensätzen reich genug werden, um Fragen zu beantworten, die keine einzelne App beantworten könnte.

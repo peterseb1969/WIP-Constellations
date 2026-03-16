@@ -632,4 +632,34 @@ The fix in the app: when `wipApiUrl` from config.json is empty, fall back to `wi
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 017, 018, etc.) and include date, category, phase, and severity.*
+## Entry 017 — 2026-03-15
+
+**Category:** Narrative and positioning
+**Phase:** N/A (meta-level reflection)
+**Severity:** N/A (not a bug — sharpened the project’s story)
+
+### What happened
+
+A fresh Claude instance with no investment in WIP’s success was asked to challenge the project’s viability with six adversarial arguments. The human defended each, conceding honestly where the critique was valid and arguing back where it wasn’t.
+
+### Key outcomes
+
+1. **"The constraint is the feature"** emerged as WIP’s strongest pitch. WIP’s value isn’t that it enables something technically impossible — it’s that it makes the right thing the only path. You can’t skip the terminology, can’t skip the template, can’t store unvalidated data. The discipline is the point.
+
+2. **The Registry was reframed.** Its value isn’t future federation — it’s that you almost never own your own data. Your bank owns your account IDs. Your employer owns your payroll codes. Every app that integrates external data solves the foreign ID problem badly. The Registry solves it systematically, from day one.
+
+3. **The audience was honestly scoped.** WIP is an experiment building evidence, not a product claiming a market. Clinical trial operations is the beachhead domain. Hobbyists are invited to follow along, not sold a product.
+
+4. **Hardware requirements need honesty.** "Runs on a Raspberry Pi" must specify Pi 5, 8GB, SSD. The performance story collapses without these, and burying the requirement means bad first experiences.
+
+5. **The never-delete principle needs an escape valve.** Optional archiving and hard-deletion of inactive versions, while keeping soft-delete as the default.
+
+### Lesson
+
+**Adversarial review by a disinterested party is the fastest way to sharpen a narrative.** The Critical Claude had no stake in WIP’s success and asked questions the builder would never ask themselves. Five of six challenges were defended, but the defenses produced better arguments than the original documentation contained. The FAQ, the "constraint is the feature" framing, the Registry reframing, and the honest audience scoping all came from this session.
+
+This is the intellectual equivalent of Entry 001’s cross-audit: two perspectives are more valuable than one, especially when one is adversarial.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 018, 019, etc.) and include date, category, phase, and severity.*

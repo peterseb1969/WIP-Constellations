@@ -359,7 +359,13 @@ But the comparison isn’t entirely clean: Day 2 benefited from a pre-existing d
 
 ---
 
-## Looking Ahead: Day 3
+## Looking Ahead
+
+Day 3 didn't involve code. It involved a train, a fresh Claude instance with no investment in WIP's success, and six adversarial challenges. The results changed how the project tells its story.
+
+*See [Day 3: The Sparring Match on a Train](WIP_Journey_Day3.md).*
+
+
 
 Day 3 will test the final claim: that a containerised WIP app can be deployed to a Raspberry Pi and serve real data in a home network. The image is built. The runtime config injection works. The seed files are baked in. The theory says: `podman pull`, set three environment variables, and it runs.
 
@@ -371,4 +377,4 @@ Day 3 might be a few days away. The weekend is over. But the container is ready,
 
 ---
 
-*Day 2 final status: approximately 6.5 hours total. One complete app at definition-of-done, running in a container with runtime config injection. 101 tests, 6 documentation files, 16 lessons learned entries. Two context exhaustions survived. Two platform bugs fixed upstream. One silent container deployment bug diagnosed and fixed in both the app and the client library. The calibrated instruments produced a measurably better result than Day 1 — and they did it faster, with more features, better tests, and proper documentation. The next step is the Raspberry Pi.*
+*Day 2 final status: approximately 6.5 hours of build time, One complete app at definition-of-done, containerised and running. The next day brought no code but significant clarity. One complete app at definition-of-done, running in a container with runtime config injection. 101 tests, 6 documentation files, 16 lessons learned entries. Two context exhaustions survived. Two platform bugs fixed upstream. One silent container deployment bug diagnosed and fixed in both the app and the client library. The calibrated instruments produced a measurably better result than Day 1 — and they did it faster, with more features, better tests, and proper documentation. The next step is the Raspberry Pi.*

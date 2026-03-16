@@ -13,3 +13,9 @@ dist/
 
 # Environment
 .env
+
+# Local libs (built packages, too large for git)
+libs/
+
+# Claude Code local config (machine-specific)
+.claude/mcp_settings.json

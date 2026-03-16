@@ -288,4 +288,4 @@ The app is a product of calibration, not of the calibrated instrument. Testing w
 
 Day 1 was calibration. Day 2 is the first real measurement.
 
-*See [Day 2: From One App to an Ecosystem](WIP_Journey_Day2.md) for what happens next.*
+*See [Day 2: From One App to an Ecosystem](WIP_Journey_Day2.md) and [Day 3: The Sparring Match on a Train](WIP_Journey_Day3.md) for what happens next.*

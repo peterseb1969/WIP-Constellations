@@ -209,6 +209,22 @@ In the meantime, the tradeoff is yours to make. You can use WIP's apps to view y
 
 We'd rather tell you this upfront than have you discover it later. Trust is built on honesty, not on fine print.
 
+### The Constraint Is the Feature
+
+There's a counterintuitive argument for why WIP works that only becomes clear when you've seen enough software projects fail.
+
+Every developer — human or AI — knows they should design their data model carefully before writing code. Define what makes each record unique. Validate inputs. Use consistent vocabulary. Nobody disagrees with this in principle.
+
+Nobody does it in practice.
+
+Under deadline pressure, the data model is where corners get cut. "We'll fix the list of values later." "Let's just use a text field for now." "We can add validation in the next sprint." These shortcuts accumulate invisibly until they explode — duplicate records, inconsistent categories, broken references, data that can't be queried because every app stored it differently.
+
+WIP makes these shortcuts impossible. You can't store data without a template (the blueprint). You can't create a template without defining what makes a record unique. You can't use free-text where a controlled vocabulary exists. The system won't let you skip the hard part — because the hard part is the part that always gets skipped, and the consequences are always expensive.
+
+For AI-assisted development, this matters even more. An AI building from scratch will produce beautiful-looking software with invisible data disasters underneath. An AI building on WIP is structurally prevented from the most common failures — because WIP's constraints are the guardrails, and the AI can't go around them.
+
+**The discipline isn't a limitation. It's the entire point.**
+
 ### The Compounding Effect
 
 This makes the compounding effect even more powerful than we originally described. We have one app. The constellation thesis says the magic happens at three or more, when the cross-connections between datasets become rich enough to answer questions no single app could answer.
