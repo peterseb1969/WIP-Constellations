@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeftRight, Settings2, Search, ChevronLeft, ChevronRight, X, Filter } from 'lucide-react'
 import { useQueryDocuments, useDocuments, useTemplateByValue } from '@wip/react'
 import type { Document, QueryFilter } from '@wip/client'
@@ -342,6 +343,7 @@ function columnFiltersToQuery(columnFilters: Record<string, ColumnFilter>): Quer
 // ---------------------------------------------------------------------------
 
 export function TransactionsPage() {
+  const [searchParams] = useSearchParams()
   const [columns, setColumns] = useState(buildDefaultColumns)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilter>>({})
@@ -350,7 +352,7 @@ export function TransactionsPage() {
   const [searchText, setSearchText] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [accountId, setAccountId] = useState('')
+  const [accountId, setAccountId] = useState(searchParams.get('account') ?? '')
   const [txType, setTxType] = useState('')
   const [page, setPage] = useState(1)
   const pageSize = 25

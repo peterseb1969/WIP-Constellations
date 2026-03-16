@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Landmark, Plus, X, CreditCard, Wallet, Building2, TrendingUp, ChevronRight } from 'lucide-react'
 import { useDocuments, useCreateDocument, useTemplateByValue } from '@wip/react'
 import type { Document } from '@wip/client'
@@ -14,11 +15,18 @@ const ACCOUNT_TYPE_ICONS: Record<string, typeof Landmark> = {
 }
 
 function AccountCard({ doc }: { doc: Document }) {
+  const navigate = useNavigate()
   const data = doc.data as Record<string, string>
   const Icon = ACCOUNT_TYPE_ICONS[data.account_type] ?? Landmark
 
+  function handleViewTransactions() {
+    navigate(`/transactions?account=${doc.document_id}`)
+  }
+
   return (
-    <div className="bg-surface border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer">
+    <div
+      onClick={handleViewTransactions}
+      className="bg-surface border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-start gap-4">
         <div className="p-2.5 bg-primary/10 rounded-lg shrink-0">
           <Icon size={22} className="text-primary" />
