@@ -34,7 +34,9 @@ The challenge is not to remove PoNIFs. It is to:
 
 **What goes wrong:** Users deactivate a term and expect all documents using it to fail. They don't — they keep working. Users expect deactivated templates to be invisible. They're not — they still resolve when documents reference them. The mental model of "inactive = deleted" is wrong; the correct model is "inactive = retired."
 
-**Sensible default:** The current behaviour is the correct default. But documentation should be explicit: *"Inactive means retired, not deleted. Retired entities are invisible to new data but always visible to existing data."*
+**Sensible default:** The current behaviour is the correct default — with one important nuance that needs verification: when a term is deactivated, can new documents still use that term value? If yes, "retired" is incomplete — it should mean "existing documents keep resolving, but new documents cannot use this value." If deactivated terms are still accepted in new documents, that's a gap between the mental model and the implementation.
+
+Documentation should be explicit: *"Inactive means retired, not deleted. Retired entities are invisible to new data but always visible to existing data."* And the implementation should enforce the "invisible to new data" part.
 
 ### 2. Template Versioning — Multiple Active Versions
 
@@ -48,7 +50,11 @@ The challenge is not to remove PoNIFs. It is to:
 - A developer updates a template to fix a field type. Both versions remain active. New documents might be created against either version depending on which one the client resolves. (This caused the Day 4 `file_config` bug — the bootstrap created v1 with PDF-only restriction, the fix created v2, but the cached v1 was still active and being used.)
 - An AI updates a template and assumes the old version is gone. It isn't. The AI doesn't deactivate the old version because that's not what "update" means in any system it was trained on.
 
-**Sensible default:** `@wip/client`'s `updateTemplate()` should deactivate the previous version by default, with an option to keep it active: `updateTemplate(id, fields, { keepPreviousActive: true })`. The PoNIF (multiple active versions) remains available for advanced use cases, but the common case — "I updated the template, use the new one" — works without thinking about it.
+**Sensible default:** The obvious default — "deactivate the previous version on update" — is actually dangerous. If a pipeline is still creating documents against v1, silently deactivating it breaks that pipeline. The real PoNIF isn't that multiple versions exist; it's that the client defaults to "latest" instead of requiring an explicit version.
+
+The correct default is in the client library: `@wip/client` should require `template_version` in document creation calls, or at minimum warn loudly when it's omitted. The CLAUDE.md versioning table already says "always pass `template_version`" — the library should enforce what the documentation recommends.
+
+For `updateTemplate()`, the default should be to keep the previous version active (preserving the PoNIF's power) but return a clear message: *"Template X updated to v2. Previous version v1 is still active. Pass `{ deactivatePrevious: true }` to deactivate it, or pin `template_version: 2` in document creation calls."*
 
 ### 3. Document Identity — The Registry Decides
 
@@ -89,7 +95,9 @@ The challenge is not to remove PoNIFs. It is to:
 
 **The feature:** Any entity in WIP can have multiple identifiers (synonyms) registered in the Registry. A synonym can be any key-value pair: `{"erp_id": "SAP-001"}`, `{"iban": "CH93 0076..."}`, `{"gandalf_name": "Mithrandir"}`. All synonyms resolve to the same canonical WIP ID. Lookup by any synonym is O(1), as fast as lookup by canonical ID.
 
-Additionally, two WIP IDs can be declared as synonyms of each other (merge), and a WIP ID can be deprecated in favour of another (redirect). The Registry maintains the full resolution chain. Crucially, merges are reversible — deleting the synonym "unmerges" the entities. And a single real-world entity can have multiple WIP IDs, not just one. Merging is reversible — delete the synonym that linked the two IDs and they separate again.
+Additionally, two WIP IDs can be declared as synonyms of each other (merge), and a WIP ID can be deprecated in favour of another (redirect). The Registry maintains the full resolution chain. A single real-world entity can have multiple WIP IDs, not just one.
+
+**Note on merge reversibility:** Merges are currently effectively one-way. Removing the synonym removes the link, but the deprecated entry remains inactive — there is no inactive → active transition endpoint in the Registry. A reactivation endpoint is planned as a future feature to enable clean unmerge operations. Merging is reversible — delete the synonym that linked the two IDs and they separate again.
 
 An entity can have multiple WIP IDs. This is not a bug or an edge case — it's a legitimate state. Different systems may have independently created Registry entries for the same real-world entity before anyone knew they were the same.
 
@@ -107,6 +115,20 @@ An entity can have multiple WIP IDs. This is not a bug or an edge case — it's 
 - An AI creates documents with a reference value of "CUS-001". If a synonym maps "CUS-001" to a WIP document, the reference resolves. If no synonym exists, WIP falls back to business key lookup. If the business key lookup also fails, the document is rejected. The AI doesn't know which resolution path was attempted or which one failed.
 
 **Sensible default:** `@wip/client` should surface the resolution path in reference errors: *"Reference 'CUS-001' for field 'customer' could not be resolved. Attempted: direct ID (not a UUID), Registry synonym (not found), business key on CUSTOMER template (no match)."* The developer needs to know *why* resolution failed, not just *that* it failed.
+
+### 6. Template Field Resolution Timing
+
+**The feature:** Template metadata (like `file_config.allowed_types`) is resolved at document validation time, not at template creation time. The document store caches the resolved template and uses it for all subsequent validations until the cache expires or the service restarts.
+
+**Why it's powerful:** Validation always uses the current template definition. No need to rebuild or restart services when templates change.
+
+**Why it's non-intuitive:** When you update a template (creating v2), the document store may continue validating against cached v1 until the cache expires. This is distinct from PoNIF #2 (multiple active versions) — even if v1 is deactivated, the cache may still hold it.
+
+**What goes wrong:** On Day 4, the FIN_IMPORT template was updated from v1 (PDF-only) to v2 (PDF + CSV). v1 was deactivated. The document store continued validating against cached v1, rejecting CSV uploads. Only a service restart cleared the cache. The debugging took 25 minutes because the template showed the correct (v2) definition in every inspection tool — the bug was invisible except in the validation behaviour.
+
+**Sensible default:** This was fixed during the experiment: versioned template lookups are cached permanently (immutable), "latest" resolution uses a 5-second TTL. But the incident demonstrates that cache invalidation is a PoNIF in its own right — the developer expects changes to take effect immediately, the system serves stale data until the cache expires.
+
+*This PoNIF was identified by Constellation-Claude during its review of this document — itself an example of the collaborative review process catching gaps.*
 
 ---
 
@@ -142,11 +164,13 @@ This happened during the experiment:
 
 ## The PoNIF Principle
 
-> **A PoNIF that surprises the user once is a documentation failure. A PoNIF that surprises the user twice is a defaults failure. A PoNIF that surprises the user three times is a design failure.**
+> **A PoNIF that surprises the user once is a documentation failure. A PoNIF that surprises the user twice is a defaults failure. A PoNIF that surprises the user three times is a design failure — unless the surprise is the irreducible cost of the capability.**
 
-WIP's PoNIFs are in the first and second category. The features are correct. The documentation is catching up. The defaults (especially in `@wip/client`) need work to make the common case safe without removing the power from the advanced case.
+Some PoNIFs can be defaulted away: bulk-first is hidden by `@wip/client`, template versioning can be managed by requiring explicit version pins. These are "defaultable PoNIFs" — the power is preserved, the surprise is absorbed by the library.
 
-The goal is not to remove the non-intuitive behaviour. It's to make the intuitive path lead to the correct behaviour, while keeping the non-intuitive path available for those who need it.
+Other PoNIFs are permanent teaching costs: document identity via identity fields cannot be defaulted because the choice of identity fields is a domain decision. The Registry's multi-ID model cannot be simplified to one-ID-per-entity without losing the capability. These are "irreducible PoNIFs" — they must be taught, not defaulted, and the documentation must be good enough that the teaching sticks even after Compactheimer's.
+
+WIP's PoNIFs are a mix of both. The defaults (especially in `@wip/client`) need work to absorb the defaultable ones. The irreducible ones need documentation that is clear enough to survive context compaction — which means short, concrete, and repeated in multiple places rather than explained once in a long document.
 
 ---
 
@@ -159,6 +183,7 @@ The goal is not to remove the non-intuitive behaviour. It's to make the intuitiv
 | Document identity via Registry | CLAUDE.md, AI-Assisted-Dev.md | Warn on zero identity fields | Pending |
 | Bulk first / 200 OK always | CLAUDE.md WIP Access Rules | `@wip/client` wraps singles; needs `hasErrors()` helper | Partial |
 | Registry synonyms | AI-Assisted-Dev.md | Surface resolution path in errors | Pending |
+| Template resolution timing | This document, Entry 019 | Cache with TTL (implemented) | ✓ Fixed |
 | Compactheimer's drift | This document | PoNIF checkpoints in slash commands | Pending |
 
 ---
