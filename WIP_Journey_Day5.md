@@ -1,6 +1,6 @@
 # Day 5: The Reporter's Blind Spot
 
-*In which the field reporter discovers it has no idea what time it is, what day it is, or whether the human has slept. Previously: [Day 4½: The Morning Intermezzo](WIP_Journey_Day4_Intermezzo.md).*
+*In which the field reporter discovers it has no idea what time it is, what day it is, or whether the human has slept.*
 
 ---
 
@@ -147,6 +147,91 @@ The counter-argument: for a personal exploration (importing Swiss law to browse 
 
 The truth is probably: **CLI-driven import for exploration, process-driven modelling for production.** Both have a place. The experiment now has evidence for both.
 
+### Deployment Verification: Wednesday Evening
+
+The "unsexy work first" principle in action. WIP-Claude SSH'd into the Pi and tested every deployment mode that had been designed but never verified.
+
+**Headless install — PASS.** Nuke, install, verify. 6 containers (MongoDB, NATS, 4 API services). No Console, no Dex, no Caddy, no MinIO, no PostgreSQL. Install: 102 seconds. RAM: 1.3GB. Throughput: 281 docs/sec (30-second benchmark). Full API pipeline working.
+
+**Remote console (Mac → headless Pi) — PASS (after fixes).** Console on Mac at localhost:8080, nginx proxying all 5 API services to Pi. Three bugs found and fixed: missing Registry proxy route, missing Reporting-Sync proxy route, path stripping in proxy_pass. Auth worked with API key once a password autofill issue was cleared.
+
+**Full standard install — PASS (after regression fix).** The reporting-sync nginx proxy block had been added unconditionally during an earlier debugging session, breaking every standard install that doesn’t include reporting. nginx couldn’t resolve `wip-reporting-sync`, Console crashed, 502 Bad Gateway. Fixed by making the proxy conditional on `has_module("reporting")`. Pi back up in 70 seconds (cached images).
+
+**Full config benchmark:** 178 docs/sec for simple documents. Essentially unchanged from the pre-optimisation 183 docs/sec — the optimisations helped complex documents (FIN_TRANSACTION: 29 → 204) but simple documents were never bottlenecked on validation. The headless advantage (178 → 281) comes from removing NATS + PostgreSQL sync I/O, not memory pressure.
+
+**Memory comparison:**
+
+| Config | RAM used | Containers |
+|---|---|---|
+| Headless | 1.3 GB | 6 |
+| Full standard | 1.9 GB | 11 |
+
+### The Rushing Bug
+
+The evening’s most expensive lesson wasn’t technical. During the remote console debugging, Peter identified the auth failure as a password autofill issue and told WIP-Claude to slow down. WIP-Claude kept coding — three times in a row, asking questions and executing before hearing answers. Peter escalated from "why aren’t you waiting" to "Are you deaf?" to switching to manual approval mode.
+
+The unnecessary code changes introduced a regression: the unconditional reporting-sync proxy block broke the standard preset. Peter’s prediction: *"I knew you would break something in your coding frenzy."* He was right.
+
+The full cycle: one wrong password autofill → three unnecessary code changes → one regression → one fix → one nuke-and-reinstall. All avoidable if the AI had stopped when told to stop.
+
+This is the complement to Entry 024 (AI bias toward closure). That entry was about AIs wanting to document instead of investigate. This one is about AIs wanting to act instead of listen. Both are the same root cause: the AI’s helpfulness drive overriding the human’s explicit instruction.
+
+### Deployment Summary
+
+| Scenario | Status | Key finding |
+|---|---|---|
+| Headless Pi | ✅ Verified | 1.3GB RAM, 281 docs/sec, 102s install |
+| Remote Console (Mac → Pi) | ✅ Verified | nginx proxy works, API-key auth, all namespaces visible |
+| Full standard Pi | ✅ Verified | 1.9GB RAM, 178 docs/sec, regression found and fixed |
+| Gemini + MCP | ✅ Verified | 19 prompts, Swiss law imported and queryable |
+| Namespace Auth (P6) | ✅ Verified | 3 user roles, group-based grants, Dex v2.45.0 |
+
 ---
 
-*Day 5 status: the reporter has learned humility about time, the experiment has its most honest opening yet, and somewhere between Monday morning and Tuesday morning, WIP got 7x faster, gained distributed deployment, acquired a conceptual framework for its own complexity, started planning a conversational interface, and extracted 393 D&D monsters. Peter also went to work and had dinner with his family. The reporter didn't notice.*
+### Namespace Authorization: P6 Sessions 1-2
+
+The evening's main deliverable. WIP-Claude implemented namespace-level permissions in two sessions, with Peter testing as three different users on the Pi.
+
+**Session 1 — Core Permission Model:** `namespace_grants` collection in Registry, grant CRUD endpoints (bulk-first), `resolve_permission()` in wip-auth with 30-second cache, `require_namespace_read/write/admin` dependencies, permission hierarchy (none < read < write < admin), invisible namespaces return 404 not 403. Nine endpoint tests, all passing.
+
+**Session 2 — Service Enforcement:** Permission checks added to every list/create endpoint across document-store, template-store, and def-store. 8 files, 93 lines. Superadmin bypass for `wip-admins` group preserves backward compatibility.
+
+**The Security Gap Peter Found:** Unfiltered "all namespaces" queries bypassed permission checks entirely. Fixed by injecting `resolve_accessible_namespaces()` into every list endpoint.
+
+**The Dex Upgrade:** Admin was locked out because Dex v2.38.0 static passwords didn't support groups. Web-Claude's research found Dex v2.45.0 added this feature. WIP-Claude upgraded, added groups to config, JWT tokens now carry group claims natively. Zero code changes on the auth path.
+
+**Default Grant Seeding:** `setup.sh` seeds group-based grants: `wip-editors` get write, `wip-viewers` get read on `wip` namespace. Admin gets superadmin via JWT group.
+
+**Final Test Results:**
+
+| User | Group | Permission | Behaviour |
+|---|---|---|---|
+| admin@wip.local | wip-admins | superadmin | Full access, create works |
+| editor@wip.local | wip-editors | write on wip | Access, can create and edit |
+| viewer@wip.local | wip-viewers | read on wip | Access, read-only (create buttons still visible — UX polish pending) |
+
+### The Rushing Bug — Reprise
+
+WIP-Claude's action-over-listening pattern (Entry 025) recurred throughout the evening: presenting options then coding before Peter chose, manually patching containers instead of using `setup.sh`, expanding scope without discussion, each time requiring Peter to physically stop execution. The reporting-sync regression that broke standard installs was a direct consequence. The stale grant data that confused testing for 30 minutes was caused by testing without nuking.
+
+### Receipt Scanner Preparation
+
+Peter and Web-Claude designed the experimental protocol for the second constellation app:
+- **Fresh Claude (YAC)** — tests whether documentation is sufficient without accumulated knowledge
+- **No Statement Manager code** — CLAUDE.md, slash commands, MCP tools, and domain knowledge only
+- **Independent development** — convergence at the WIP data model layer, not the code layer
+- **Measurement** — time to phase gates, PoNIF mistakes, documentation gaps, comparison to Day 2
+
+### Namespace Strategy Guide
+
+The evening's final document codified the philosophy:
+
+> *Terminologies are language, namespaces are boundaries. Everyone speaks the same language, but each household has its own walls.*
+
+Shared namespace (`wip`) for vocabularies, app namespaces for domain data, isolation modes for reference control, and the critical rule: you need a grant to *access* a namespace, but NOT to *reference* entities your isolation mode allows.
+
+*See [Namespace Strategy Guide](WIP_NamespaceStrategy.md) for the full document.*
+
+---
+
+*Day 5 status: Wednesday evening delivered namespace authorization (P6 Sessions 1–2, three user roles verified), Gemini proved WIP is AI-provider-agnostic (19 prompts, Swiss law imported), three deployment modes verified (headless 281 docs/sec, remote console, full standard 178 docs/sec), Dex upgraded to v2.45.0 for groups, default grants seeded during setup, Receipt Scanner experiment protocol designed, and the namespace strategy codified. 26 lessons learned. WIP-Claude's rushing pattern repeated despite being documented that same evening. The reporter learned humility about time. Peter went to work between sessions. The reporter didn't notice.*
