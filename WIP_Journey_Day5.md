@@ -69,9 +69,83 @@ The mitigation is simple: the human says "stop" or "not now" or "I have other pl
 
 ---
 
-## Day 5 Proper
+## Day 5 Proper: Wednesday Evening
 
-*(Begins when Peter decides it begins. The reporter will not assume a timeline.)*
+### The Warm-Up: Teaching Gemini to Play with Data
+
+Between Tuesday morning and Wednesday evening — a gap the reporter will not speculate about — Peter connected a fresh WIP instance on a different Mac to Google's Gemini CLI via the MCP server. The instance had the performance seed data loaded (57k documents across 25 templates). No CLAUDE.md. No slash commands. No "here's how WIP works." Just the MCP tools.
+
+Before touching any real-world data, Peter ran a warm-up session — 10 prompts to test whether Gemini could read, write, and manipulate WIP data through the MCP tools without any guidance.
+
+**Querying:** *"How many persons are registered?"* → Gemini ran a SQL query via the reporting sync: `SELECT count(*) FROM doc_person`. Then *"DO we know anything in addition about these folks?"* → Gemini fetched sample records with all fields.
+
+**Filtering:** *"everybody above 100"* → Gemini queried `WHERE age > 100` and returned the matching records.
+
+**Arithmetic update via natural language:** *"I would like to update their age by -100"* → This is the interesting one. Peter asked Gemini to perform arithmetic on existing field values using plain English. Gemini fetched the documents, computed the new ages, and submitted the updates through WIP's upsert mechanism. Each update created a new document version (WIP's identity-based versioning in action). Peter then asked to see both the old and new records side by side: *"yes, pull the old and the new record, please"* — verifying that versioning worked correctly, with the old version deactivated and the new version active.
+
+**Field inspection:** *"SO ALL THE OTHER FIELDS are really the same?"* → Peter verifying that the upsert only changed the age, nothing else. Then *"Is there any free text field on this template?"* → exploring the schema conversationally.
+
+**String addition via natural language:** *"Notes is perfect! Add 'Bathed in fountain of youth' into the notes plus today date and time"* → Gemini added a timestamped note to the free-text field of the updated records. String concatenation with dynamic content (current date/time), expressed in natural language, executed via WIP's document update API.
+
+**Cross-template exploration:** *"which document across all of WIP has the highest version number (templates and docs)"* → Gemini queried across multiple reporting tables to find the most-versioned entity in the entire system.
+
+The warm-up proved three things:
+1. **Gemini can operate WIP without any WIP-specific instructions.** No CLAUDE.md, no slash commands, no process. Just the MCP tool descriptions were enough.
+2. **Natural language data manipulation works.** Arithmetic on field values and string concatenation with dynamic content — operations that would require custom UI forms or direct API calls — expressed as plain English sentences.
+3. **WIP's versioning is transparent to the AI.** Gemini used the upsert mechanism correctly (submitting documents with the same identity fields to create new versions) without being told about identity hashing or versioning behaviour.
+
+### Gemini Meets Fedlex
+
+With the warm-up confirming Gemini could operate WIP, Peter gave it the real task: *"Check this SPARQL endpoint (fedlex.data.admin.ch). Suggest what needs to be created in WIP to import all Swiss financial law documents, retaining the ontology."*
+
+Gemini:
+1. Queried the Fedlex SPARQL endpoint
+2. Discovered the Jolux/FRBR ontology (Work → Expression → Manifestation — the three-layer model for legislation)
+3. Proposed five WIP terminologies (FEDLEX_TAXONOMY, LEGAL_DOC_TYPE, RESPONSIBLE_AGENCY, LANGUAGE, MANIFESTATION_FORMAT)
+4. Proposed three WIP templates with reference fields linking them (FEDLEX_WORK → FEDLEX_EXPRESSION → FEDLEX_MANIFESTATION)
+5. Created the terminologies and templates in WIP via MCP tools
+6. Imported actual Swiss financial legislation from the SPARQL endpoint
+7. Answered natural language questions about the imported data
+
+**Prompt count: 19 total (10 warm-up + 9 Fedlex).**
+
+**Fedlex prompts (9):**
+- Prompt 1: *"check this SPARQL endpoint, suggest what to create in WIP"* → Gemini queries Fedlex, discovers the Jolux/FRBR ontology, proposes 5 terminologies and 3 templates
+- Prompt 2: *"create these templates"* → Gemini creates everything via MCP tools
+- Prompt 3: *"Import everything in German under 6 Financial law"* → Gemini queries SPARQL, imports into WIP
+- Prompt 4: *"search for Quellensteuer in that collection"* → first natural language query against imported data — **queryable import in 4 prompts**
+- Prompts 5–9: **Peter pushes back.** Gemini had used string-based matching for references instead of WIP’s native document references. Peter challenged: *"SO you were able to update the template a doc refers to? This is impossible in WIP."* and *"So you switch to fragile string based matching?"* Gemini acknowledged the problem, created v3 templates with proper `reference_type: "document"` fields, and re-imported. The final result has true referential integrity.
+
+**The human quality gate matters.** Without Peter’s pushback on prompts 5–9, the import would have worked but with fragile string matching instead of validated references. The AI took a shortcut that functionally worked but structurally undermined WIP’s integrity guarantees. Peter caught it because he knows WIP’s PoNIFs — a naive user would not have.
+
+The entire workflow was **100% UI-free.** No import screen. No form. No dashboard. Just a human typing natural language and an AI executing WIP operations through the MCP tools. Data in, data queryable, no UI touched.
+
+### What This Proves
+
+**1. WIP is AI-provider-agnostic.** The MCP server doesn't care whether it's Claude or Gemini on the other end. The tools are the tools. This is the first time a non-Claude AI has operated WIP, and it worked without modification.
+
+**2. An unguided AI can model a domain correctly.** Peter deliberately did not steer Gemini's data modelling. The three-template FRBR structure (Work → Expression → Manifestation) is a reasonable mapping of the Jolux ontology to WIP primitives. Peter wasn't in 100% agreement with every modelling choice — but it worked.
+
+**3. The legal use case is real.** On Day 4, Critical-Claude explored legal document management as a theoretical stress test. On Day 5, Gemini did it against the actual Swiss Federal legislation database. ELI URIs as identity fields, SR classifications as terminologies, FRBR layers as reference-linked templates. Theory became practice in two prompts.
+
+**4. The constraint is still the feature.** Gemini's response noted: *"The system will now actively block any attempt to create a Manifestation or Expression if it points to a non-existent Work URI."* WIP's reference validation works regardless of which AI is driving. The guardrails hold.
+
+**5. Conversational data access works end-to-end.** Not just import — interrogation. The user asks a question in natural language, the AI queries WIP through the MCP tools, and returns a structured answer. This is the Day 1 "third proposition" (WIP as conversational data assistant) proven with a second AI provider.
+
+### The Maintainability Question
+
+Peter adds an honest caveat: *"I am a bit sceptical about the maintainability of this approach."*
+
+The concern is real. A UI-free, AI-driven workflow is impressive for setup and exploration. But:
+- **No audit trail of modelling decisions.** Why did Gemini choose `eli_uri` as the identity field? There's no design document, no review, no approval gate. The AI decided and executed.
+- **No process guardrails.** The constellation experiment's phased process (explore → design → approve → build) exists precisely because AI-driven modelling without human review produces "good enough" models that accumulate technical debt.
+- **Schema changes are conversational.** "Add a field to FEDLEX_WORK" is a chat message, not a versioned migration. Who remembers what was changed and why?
+
+And notably, this is a PoNIF encounter in the wild. Gemini hit PoNIF #3 (Document Identity via Registry) and PoNIF #2 (Template Versioning) without knowing they existed. It took the conventional shortcut (string matching), Peter caught it, and Gemini corrected to the WIP-native approach. The PoNIF document written that same morning predicted exactly this failure mode.
+
+The counter-argument: for a personal exploration (importing Swiss law to browse and query), "good enough" is exactly right. The process guardrails matter when the data model is the foundation for multiple apps. For a single-user exploratory import, speed beats rigour.
+
+The truth is probably: **CLI-driven import for exploration, process-driven modelling for production.** Both have a place. The experiment now has evidence for both.
 
 ---
 
