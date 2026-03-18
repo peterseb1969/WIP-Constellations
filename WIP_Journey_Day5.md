@@ -1,6 +1,6 @@
 # Day 5: The Reporter's Blind Spot
 
-*In which the field reporter discovers it has no idea what time it is, what day it is, or whether the human has slept.*
+*In which the field reporter discovers it has no idea what time it is, what day it is, or whether the human has slept. Previously: [Day 4½: The Morning Intermezzo](WIP_Journey_Day4_Intermezzo.md).*
 
 ---
 
