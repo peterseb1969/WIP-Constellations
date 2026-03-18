@@ -118,15 +118,21 @@ On Day 4 of the experiment, WIP was deployed from zero on a Raspberry Pi 5 (8GB 
 |------|------|
 | Clone repository | 1 second |
 | Full deployment (all modules, local builds) | 3 minutes 9 seconds |
-| Seed 57,400 documents across 25 templates | 5 minutes 32 seconds |
+| Seed 57,400 documents across 25 templates | 5 minutes 13 seconds |
 | Build Statement Manager container | 49.6 seconds |
 | Bootstrap data model (6 terminologies, 5 templates) | instant |
 
-**Sustained throughput: 172.7 documents per second** — each document validated against its template, registered in the Registry, stored in MongoDB, and streamed to PostgreSQL for reporting.
+**Sustained throughput on Raspberry Pi 5:**
+- **751 documents per second** for simple documents (PERSON — string fields, no references)
+- **204 documents per second** for complex documents (FIN_TRANSACTION — reference resolution, 4 terminology validations, identity hashing)
+
+Each document is validated against its template, registered in the Registry, stored in MongoDB, and streamed to PostgreSQL for reporting. The complex document throughput is the more realistic benchmark — real-world applications use references and controlled vocabularies.
+
+For comparison, the same workloads on a Mac achieve 635 and 75 docs/sec respectively before server-side optimisation, and significantly higher after. The Pi is approximately 3x slower than a Mac, which is expected for the hardware difference.
 
 The SSD is the key enabler. Running on an SD card would significantly degrade throughput and is not recommended beyond evaluation. Pi 5 with 8GB RAM is the minimum recommended configuration.
 
-This is not a marketing claim. It is a measured benchmark, reproducible by following the setup script and running the performance seed profile.
+This is not a marketing claim. It is a measured benchmark, reproducible by following the setup script and running the performance seed profile (`python scripts/seed_comprehensive.py --profile performance`).
 
 ## The MCP server: closing the last gap
 

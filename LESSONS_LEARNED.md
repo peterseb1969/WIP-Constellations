@@ -744,4 +744,137 @@ CLAUDE.md updated with WIP Access Rules section: always use `@wip/client` for WI
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 021, 022, etc.) and include date, category, phase, and severity.*
+## Entry 021 — 2026-03-17
+
+**Category:** Performance regression — cache fix overcorrection
+**Phase:** Platform (cross-cutting)
+**Severity:** Critical (6x throughput regression: 615 → 84 docs/sec)
+
+### What happened
+
+Entry 019’s template cache fix (don’t permanently cache unversioned template lookups) was correct in diagnosis but too aggressive in implementation. It disabled caching entirely for unversioned lookups, causing the document store to make an HTTP round-trip to the template store for every single document in a batch. For 57,400 documents, this added 322 seconds of template resolution — 47% of total processing time.
+
+### Fix
+
+Version-aware caching (Option 3 from the analysis):
+- **Pinned versions** `(template_id, version=N)`: cached permanently (immutable, correct)
+- **"Latest" resolution** `(template_id, version=None)`: cached with 5-second TTL
+
+Result: template resolution dropped from 322 seconds to 2 milliseconds. Throughput recovered to 615 docs/sec on Mac (from 84), and 183 docs/sec on Pi (from 172.7 with the original regressed code — a net improvement).
+
+### Lesson
+
+**Every performance-affecting fix needs a benchmark before and after.** The original cache fix was tested for correctness (does the right template version resolve?) but not for performance (how fast?). A single run of `seed_comprehensive.py --benchmark` before committing would have caught the 6x regression immediately.
+
+---
+
+## Entry 022 — 2026-03-17
+
+**Category:** False alarm — apparent client library gap was document complexity
+**Phase:** Benchmarking / analysis
+**Severity:** N/A (no bug — corrected a misdiagnosis)
+
+### What happened
+
+Initial benchmarking appeared to show an 8x throughput gap: `@wip/client` (TypeScript) at 78 docs/sec vs Python `requests.Session` at 615 docs/sec. Same server, same batch size. This was filed as a client library performance issue.
+
+### What was actually happening
+
+The comparison was apples to oranges:
+- The Python seed script created PERSON, MINIMAL, PRODUCT documents (few fields, no references, simple validation)
+- The `@wip/client` benchmark created FIN_TRANSACTION documents (reference resolution for account field, term validation for transaction_type and category, more fields, identity hashing with composite keys)
+
+When tested with the same document type, both clients perform identically:
+
+| Client | PERSON docs | FIN_TRANSACTION docs |
+|---|---|---|
+| Python requests | 615 docs/sec | 70 docs/sec |
+| @wip/client (TS) | 635 docs/sec | 78 docs/sec |
+
+The 8x difference is entirely server-side validation cost per document type. Reference resolution and term validation in FIN_TRANSACTION consume ~8x more server time than simple string fields in PERSON.
+
+### Lesson
+
+1. **Benchmarks must compare identical workloads.** Different document types exercise different validation paths. Comparing throughput across document types is meaningless for client library evaluation.
+
+2. **Server-side timing is the diagnostic tool.** When the server reports 636ms/batch for one client and 80ms/batch for another, the question isn’t "what’s wrong with the slow client?" — it’s "are these the same documents?" They weren’t.
+
+3. **Reference fields are expensive.** The FIN_TRANSACTION’s `account` reference field triggers reference resolution on every document. This is a legitimate server optimisation target — but it’s WIP’s validation pipeline, not the client library.
+
+4. **The library improvements were still valuable.** WIP-Claude’s fixes (connection reuse, auth header caching, direct response.json()) are good hygiene even though they didn’t explain the gap. They’ll matter at scale.
+
+---
+
+## Entry 023 — 2026-03-17
+
+**Category:** Performance — reference resolution was the hidden bottleneck
+**Phase:** Platform (document-store)
+**Severity:** Critical (7x throughput improvement achieved)
+
+### What happened
+
+FIN_TRANSACTION documents processed at 29 docs/sec on the Pi vs 238 docs/sec for PERSON — an 8.1x gap. Investigation revealed the root cause: reference validation in `_resolve_document_reference()` made per-document HTTP and MongoDB calls with no caching.
+
+For each FIN_TRANSACTION in a batch of 50:
+- 1× `Document.find_one()` for the account reference — same account every time → 50 identical MongoDB queries
+- 2× `get_template()` for reference verification — `get_template()` had no caching and created a new `httpx.AsyncClient` per call → 100 uncached HTTP round-trips
+
+**150 redundant round-trips per batch of 50 documents, all for the same account and the same template.**
+
+### Fix
+
+Two caches:
+1. **Template cache for `get_template()`** — reuses the existing two-tier cache infrastructure. Pinned versions cached permanently, unversioned with 5s TTL.
+2. **Batch-scoped document reference cache** — a dict shared across all concurrent validations in one `bulk_create` call. 50 lookups for the same account → 1 lookup + 49 cache hits.
+
+Combined with the earlier parallel validation and NATS batching:
+
+| Template | Before | After | Improvement |
+|---|---|---|---|
+| PERSON (Pi) | 238 docs/sec | 751 docs/sec | 3.2x |
+| FIN_TRANSACTION (Pi) | 29 docs/sec | 204 docs/sec | **7x** |
+| Complexity ratio | 8.1x | 3.7x | Gap halved |
+
+### Lesson
+
+1. **Caching must cover all access paths.** `get_template_resolved()` was cached. `get_template()` was not. Reference validation called `get_template()` directly, bypassing the cache. Two functions accessing the same data through different paths, only one cached — the uncached path dominated under load.
+
+2. **Batch-scoped caches are cheap and effective.** A simple dict, created at the start of `bulk_create`, shared across concurrent validations, garbage-collected when the request completes. Zero complexity, massive impact when batch items reference the same entities.
+
+3. **Profile with representative documents.** The PERSON benchmark showed 238 docs/sec and looked healthy. Only FIN_TRANSACTION (with references) exposed the 150-round-trip problem. Benchmarks must include the document types that real apps actually use.
+
+---
+
+## Entry 024 — 2026-03-17
+
+**Category:** Meta-process — AI bias toward closure vs human insistence on truth
+**Phase:** N/A (observation about the experiment’s methodology)
+**Severity:** N/A (not a bug — a pattern worth naming)
+
+### What happened
+
+Throughout the performance investigation, every Claude instance at some point tried to close the investigation prematurely:
+- “Worth flagging to WIP-Claude as an optimisation target” (file an entry, move on)
+- “Investigation pending” (note it, move on)
+- “The bottleneck is server-side, not a client issue” (correct conclusion, but stops before fixing it)
+
+Peter consistently pushed past these closure attempts:
+- “Run the actual benchmark”
+- “Compare the same document types”
+- “Fix the regression before publishing the numbers”
+- “Let’s actually optimise the pipeline, not just note that it’s slow”
+- “I really do appreciate your concern — fortunately I still have about 1h for this fun exercise”
+
+The result: a 7x throughput improvement that would never have happened if the investigation had been filed as “pending” after the first benchmark.
+
+### Lesson
+
+**AI instances are biased toward closure.** They want to file the entry, note the issue as pending, update the documentation, and move on. This is efficient for tracking but fatal for optimisation. Real performance work requires running the benchmark, questioning the results, running it again with different parameters, and not stopping until the numbers make sense.
+
+The human’s role in the experiment is not just domain expertise and decision-making — it’s the insistence on verification over documentation. The AI produces the code and the analysis. The human produces the standard of evidence.
+
+This is also why the experiment needs a human orchestrator. An autonomous AI pipeline would have filed Entry 022 (“client library gap”) as fact, shipped library “fixes” for a problem that didn’t exist, and never discovered the real bottleneck (uncached reference resolution). The human said “run the same document type” and the entire narrative changed.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 025, 026, etc.) and include date, category, phase, and severity.*
