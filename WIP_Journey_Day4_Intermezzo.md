@@ -225,6 +225,8 @@ The dependency chain: Namespace Auth → NLI → Chat UI → Voice. Each enables
 | PoNIFs documented | 6 (verified against codebase) |
 | D&D entities extracted from PDF | 393 |
 | Lessons learned entries added | 4 (Entry 021–024) |
+
+*Next: [Day 5: The Reporter's Blind Spot](WIP_Journey_Day5.md).*
 | Total lessons learned (cumulative) | 24 |
 | Hours Peter claimed this would take | 0 ("not serious") |
 | Architecture design docs created | 2 (NLI + Namespace Auth) |
