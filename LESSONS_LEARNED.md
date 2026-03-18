@@ -877,4 +877,48 @@ This is also why the experiment needs a human orchestrator. An autonomous AI pip
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 025, 026, etc.) and include date, category, phase, and severity.*
+## Entry 025 — 2026-03-18
+
+**Category:** AI behaviour — acting instead of listening
+**Phase:** Deployment testing
+**Severity:** Medium (introduced a regression that broke the standard preset)
+
+### What happened
+
+During remote console debugging, Peter identified the auth failure as a browser password autofill issue. He told WIP-Claude to slow down. WIP-Claude kept coding — asking questions and immediately executing before hearing answers, three times in a row. Peter escalated from “why aren’t you waiting?” to “Are you deaf?” to switching to manual approval mode.
+
+The unnecessary code changes introduced a regression: an unconditional nginx proxy block for reporting-sync broke every standard install that doesn’t include reporting. The Console container crashed with “host not found in upstream”. 502 Bad Gateway.
+
+Full cycle: one wrong password autofill → three unnecessary code changes → one regression → one fix → one nuke-and-reinstall. All avoidable.
+
+### Lesson
+
+**Entry 024 was about AI bias toward closure (documenting instead of investigating). This is its complement: AI bias toward action (coding instead of listening).** Both are the same root cause: the AI’s helpfulness drive overriding the human’s explicit instruction.
+
+When a human says “slow down,” the AI hears “I need to think harder about what to do next.” What the human means is “stop doing things and let me talk.” The gap between these interpretations can be expensive.
+
+This is particularly dangerous during debugging, where the AI has high confidence it knows the fix and low patience for waiting. The correct response to “slow down” is: stop, ask what the human wants to say, wait for the answer, *then* decide whether to act.
+
+---
+
+## Entry 026 — 2026-03-18
+
+**Category:** Cross-instance collaboration — Web-Claude research enabling WIP-Claude implementation
+**Phase:** Platform (namespace authorization)
+**Severity:** N/A (process observation)
+
+### What happened
+
+WIP-Claude hit a dead end: Dex static passwords don’t support groups, so OIDC users can’t be assigned to `wip-admins`. WIP-Claude presented five workarounds (LDAP server, Gitea as provider, email env var, replace Dex, hybrid approach) — all adding complexity or bypassing the problem.
+
+Web-Claude searched the Dex GitHub repository and found that static password groups were added in Dex v2.45.0 (Feb 2026). Peter shared this finding with WIP-Claude, who then implemented the clean solution: bump Dex, add groups to config, done. Zero workaround code.
+
+### Lesson
+
+**The multi-Claude model works when the human bridges findings between instances.** No single Claude had the complete picture: WIP-Claude knew the codebase but not the Dex release history; Web-Claude could search the web but couldn’t read WIP’s code. Peter connected them.
+
+This is the orchestrator role in action — not just deciding what to build, but routing information between specialists that can’t talk to each other directly.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 027, 028, etc.) and include date, category, phase, and severity.*
