@@ -1,6 +1,6 @@
 # Day 4½: The Morning Intermezzo
 
-*A breakfast session that wasn't supposed to be serious. It was anyway.*
+*A breakfast session that wasn't supposed to be serious. It was anyway. Previously: [Day 4: From Hobbits to Deployment](WIP_Journey_Day4.md).*
 
 ---
 
@@ -200,6 +200,18 @@ The fictional universe use case from Day 4 just became a concrete project. Peter
 
 ---
 
+## Act 6: Architecture for the Future
+
+Two design documents emerged from WIP-Claude conversations during the intermezzo:
+
+**Natural Language Interface (NLI)** — a web-based chat panel in the WIP Console that lets users query their data conversationally. BYOK model (bring your own Anthropic/Google/OpenAI key), ~100 line agent loop (no LangChain, no frameworks), reuses the MCP server's 30+ tool definitions. Read-only by default — you can't undo a chat message that created 50 wrong documents. Voice interface via browser-native APIs at zero backend cost. ~60MB memory on the Pi. The hardest parts (tool definitions, API wrappers) already exist.
+
+**Namespace Authorization** — the NLI makes a missing feature dangerous. Today WIP authentication is binary: authenticated = full access. The moment you share access with a friend (or the NLI), you need namespace-level permissions. The design: `read / write / admin / none` per user per namespace, enforced in wip-auth (not per-service), backwards compatible (single-user deployments unchanged), with a clever 404-not-403 for invisible namespaces (don't even leak that a namespace exists).
+
+The dependency chain: Namespace Auth → NLI → Chat UI → Voice. Each enables the next.
+
+*See [NLI Design](WIP_Design_NLI.md) and [Namespace Authorization Design](WIP_Design_NamespaceAuth.md) for the full documents.*
+
 ## By the Numbers
 
 | Metric | Value |
@@ -215,6 +227,7 @@ The fictional universe use case from Day 4 just became a concrete project. Peter
 | Lessons learned entries added | 4 (Entry 021–024) |
 | Total lessons learned (cumulative) | 24 |
 | Hours Peter claimed this would take | 0 ("not serious") |
+| Architecture design docs created | 2 (NLI + Namespace Auth) |
 | Disney series concepts created | 1 |
 
 ---

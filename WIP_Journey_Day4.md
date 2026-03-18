@@ -1,6 +1,6 @@
 # Day 4: From Hobbits to Deployment
 
-*An evening session that started with the most unexpected use case yet, then turned to the Raspberry Pi.*
+*An evening session that started with the most unexpected use case yet, then turned to the Raspberry Pi. Previously: [Day 3: The Sparring Match on a Train](WIP_Journey_Day3.md).*
 
 ---
 
@@ -414,6 +414,8 @@ While the performance investigation ran, WIP-Claude also delivered distributed d
 The template cache fix needs testing. Once confirmed, the Statement Manager deployment on the Pi is clean and complete — a reproducible process documented in `bootstrap.sh` and the journey.
 
 The next major milestone remains the second app: the Receipt Scanner. Cross-app references, the network effect thesis, the question that neither app can answer alone. But that's a different session, and Day 4 earned its rest.
+
+*Continued: [Day 4½: The Morning Intermezzo](WIP_Journey_Day4_Intermezzo.md) — the breakfast session that produced a 7x throughput improvement.*
 
 ---
 

@@ -1,6 +1,6 @@
 # Day 3: The Sparring Match on a Train
 
-*No code was written on Day 3. Something more valuable happened instead.*
+*No code was written on Day 3. Something more valuable happened instead. Previously: [Day 2: From One App to an Ecosystem](WIP_Journey_Day2.md).*
 
 ---
 
@@ -152,6 +152,8 @@ Day 4 returns to building. The Statement Manager container needs to be deployed 
 After that: the second app. The Receipt Scanner. The first cross-app reference. The first test of the network effect thesis. The moment where "connected data is more valuable than isolated data" either proves itself or doesn't.
 
 But that's Day 4. Day 3 was for sharpening the story — and the story is sharper now than it was this morning.
+
+*Next: [Day 4: From Hobbits to Deployment](WIP_Journey_Day4.md).*
 
 ---
 

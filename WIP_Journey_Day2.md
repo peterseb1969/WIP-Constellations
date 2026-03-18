@@ -1,6 +1,6 @@
 # Day 2: From One App to an Ecosystem
 
-*Continuing the field report. Day 1 built the foundation and produced an unexpected insight. Day 2 tests whether it holds.*
+*Continuing the field report. [Day 1](WIP_Journey.md) built the foundation and produced an unexpected insight. Day 2 tests whether it holds.*
 
 ---
 
