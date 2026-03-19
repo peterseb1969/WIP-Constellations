@@ -4,7 +4,7 @@ import { extractPdfText } from './pdf-extract'
 // Types
 // ---------------------------------------------------------------------------
 
-export interface RochePayslipHeader {
+export interface EmployerPayslipHeader {
   employeeName: string
   employeeNumber: string
   siNumber: string
@@ -15,7 +15,7 @@ export interface RochePayslipHeader {
   company: string
 }
 
-export interface RochePayslipLine {
+export interface EmployerPayslipLine {
   code: string           // "1001", "/101", "6103", etc.
   description: string
   amount: number         // always positive
@@ -25,7 +25,7 @@ export interface RochePayslipLine {
   category: string       // FIN_PAYSLIP_LINE_CATEGORY term value
 }
 
-export interface RochePayslipSummary {
+export interface EmployerPayslipSummary {
   gross: number
   net: number
   paymentAmount: number
@@ -36,14 +36,14 @@ export interface RochePayslipSummary {
   targetIban: string
 }
 
-export interface ParsedRochePayslip {
-  header: RochePayslipHeader
-  lines: RochePayslipLine[]
-  summary: RochePayslipSummary
+export interface ParsedEmployerPayslip {
+  header: EmployerPayslipHeader
+  lines: EmployerPayslipLine[]
+  summary: EmployerPayslipSummary
 }
 
 // ---------------------------------------------------------------------------
-// Category mapping — Roche payslip codes to FIN_PAYSLIP_LINE_CATEGORY
+// Category mapping — employer payslip codes to FIN_PAYSLIP_LINE_CATEGORY
 // ---------------------------------------------------------------------------
 
 const CODE_TO_CATEGORY: Record<string, string> = {
@@ -54,7 +54,7 @@ const CODE_TO_CATEGORY: Record<string, string> = {
   '2123': 'ALLOWANCE',
   '4103': 'BONUS',           // Applause Award Gross-up
   '4101': 'NON_CASH_BENEFIT', // Applause Award (non-cash)
-  '4301': 'ESPP',            // Roche Connect EE
+  '4301': 'ESPP',            // ESPP contribution
   '4311': 'NON_CASH_BENEFIT', // LTI tax/soc (NCB)
   '4313': 'LTI',             // LTI withholding
   '/411': 'SOCIAL_CONTRIBUTION',
@@ -105,7 +105,7 @@ function parsePeriod(label: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Number parsing — Roche uses comma as thousands sep, dot as decimal
+// Number parsing — employer payslips use comma as thousands sep, dot as decimal
 // ---------------------------------------------------------------------------
 
 function parseAmount(s: string): { value: number; isDeduction: boolean } {
@@ -126,7 +126,7 @@ function parseAmount(s: string): { value: number; isDeduction: boolean } {
  *   "1001 Monthly base salary 16,417.00"
  *   "/411 AHV contribution 16,457.00 5.30 % 872.20-"
  *   "2004 Child allowance 302.50 1 302.50"
- *   "4301 Roche Connect EE 1,641.00-"
+ *   "4301 ESPP contribution 1,641.00-"
  *
  * Code is either /NNN or NNNN at the start, followed by space.
  * Then description text, then numeric fields at the end.
@@ -134,7 +134,7 @@ function parseAmount(s: string): { value: number; isDeduction: boolean } {
 
 const LINE_RE = /^(\/?\d{3,4})\s+(.+)$/
 
-function parseLine(raw: string): RochePayslipLine | null {
+function parseLine(raw: string): EmployerPayslipLine | null {
   const m = LINE_RE.exec(raw.trim())
   if (!m) return null
 
@@ -220,7 +220,7 @@ function parseLine(raw: string): RochePayslipLine | null {
 // Header extraction
 // ---------------------------------------------------------------------------
 
-function extractHeader(englishText: string): RochePayslipHeader {
+function extractHeader(englishText: string): EmployerPayslipHeader {
   const empMatch = englishText.match(/Employee Nr\.\s*(\d+)/)
   const siMatch = englishText.match(/SI Number\n([\d.]+)/)
   const capMatch = englishText.match(/(\d+)%/)
@@ -249,9 +249,9 @@ function extractHeader(englishText: string): RochePayslipHeader {
 // ---------------------------------------------------------------------------
 
 function extractSummary(
-  lines: RochePayslipLine[],
+  lines: EmployerPayslipLine[],
   englishText: string,
-): RochePayslipSummary {
+): EmployerPayslipSummary {
   const gross = lines.find((l) => l.code === '/101')?.amount ?? 0
   const net = lines.find((l) => l.code === '/550')?.amount ?? 0
   const totalDeductions = lines.find((l) => l.code === '/110')?.amount ?? 0
@@ -287,7 +287,7 @@ function extractSummary(
 // Main parse function
 // ---------------------------------------------------------------------------
 
-export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRochePayslip> {
+export async function parseEmployerPayslip(buffer: ArrayBuffer): Promise<ParsedEmployerPayslip> {
   const data = await extractPdfText(buffer)
   const rawText = data.text
 
@@ -300,7 +300,7 @@ export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRoch
 
   // Parse line items from the Earnings section
   const textLines = englishText.split('\n')
-  const lines: RochePayslipLine[] = []
+  const lines: EmployerPayslipLine[] = []
   let inEarnings = false
   let inNonCash = false
 
@@ -358,7 +358,7 @@ export async function parseRochePayslip(buffer: ArrayBuffer): Promise<ParsedRoch
 // ---------------------------------------------------------------------------
 
 export function toWipPayslip(
-  parsed: ParsedRochePayslip,
+  parsed: ParsedEmployerPayslip,
   employerDocId: string,
 ): Record<string, unknown> {
   return {
@@ -383,7 +383,7 @@ export function toWipPayslip(
 // ---------------------------------------------------------------------------
 
 export function toWipPayslipLine(
-  line: RochePayslipLine,
+  line: EmployerPayslipLine,
   payslipDocId: string,
 ): Record<string, unknown> {
   const data: Record<string, unknown> = {

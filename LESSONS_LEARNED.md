@@ -549,7 +549,7 @@ Stated plainly across all public-facing documents:
 
 Three PDF parsers were developed and tested in Node.js using pdf-parse. They worked perfectly against all sample files. When wired into the browser-based React app, pdf-parse crashed immediately: `fs.readFileSync is not a function`. The library uses Node.js file system APIs at module load time.
 
-The fix (switching to pdfjs-dist) resolved the crash but produced cleaner text output — spaces between fields that were previously glued together, proper Unicode instead of encoding artifacts. Every regex that had been carefully built and tested against pdf-parse’s glued output was now wrong. Both the Yuh and Roche parsers had to be rewritten.
+The fix (switching to pdfjs-dist) resolved the crash but produced cleaner text output — spaces between fields that were previously glued together, proper Unicode instead of encoding artifacts. Every regex that had been carefully built and tested against pdf-parse’s glued output was now wrong. Both the Yuh and employer parsers had to be rewritten.
 
 ### Lesson
 

@@ -39,7 +39,7 @@ main.tsx
                 PayslipLineItems
             ImportPage
               TransactionPreview (UBS CSV + Yuh PDF)
-              PayslipPreview (Roche payslip)
+              PayslipPreview (employer payslip)
               ImportHistoryItem
               AccountSelector
               ImportResult
@@ -76,7 +76,7 @@ No global state management (no Redux, no Zustand). All persistent data is in WIP
 The transactions page has both quick filters (top bar: search, dates, account, type) and column-level filter popovers (click the filter icon on any column header). Both layers produce `QueryFilter[]` arrays that are combined with AND logic and sent to WIP's `queryDocuments` endpoint. This was a deliberate design choice -- quick filters for the most common operations, column filters for power users who need operators like "greater than" or "is empty".
 
 ### Content-based PDF detection
-PDFs are detected by content, not filename. After extracting text with pdfjs-dist, `detectPdfType()` checks for signature strings: "Kontoauszug in" for Yuh, "Employee Nr." / "Pay date" / "Earnings" for Roche. This is more reliable than filename patterns since filenames vary.
+PDFs are detected by content, not filename. After extracting text with pdfjs-dist, `detectPdfType()` checks for signature strings: "Kontoauszug in" for Yuh, "Employee Nr." / "Pay date" / "Earnings" for employer. This is more reliable than filename patterns since filenames vary.
 
 ### pdfjs-dist for PDF extraction
 The app uses `pdfjs-dist` (the standard build with web worker) for browser-side PDF text extraction. The legacy build (`pdfjs-dist/legacy/build/pdf.mjs`) is used in Node.js integration tests. Both builds produce identical text output. The shared helper `pdf-extract.ts` reconstructs lines by grouping text items by Y-position.
@@ -98,7 +98,7 @@ Three parsers in `src/lib/parsers/`:
 |--------|------|-------|--------|
 | UBS CSV | `ubs-csv.ts` | UBS e-banking CSV export (`;`-delimited) | `ParsedUbsCsv` with header + transactions |
 | Yuh PDF | `yuh-pdf.ts` | Yuh account statement PDF | `ParsedYuhPdf` with header + transactions |
-| Roche payslip | `roche-payslip.ts` | Roche payslip PDF | `ParsedRochePayslip` with header + lines + summary |
+| employer payslip | `employer-payslip.ts` | employer payslip PDF | `ParsedEmployerPayslip` with header + lines + summary |
 
 Each parser has:
 - A `parse*` function that extracts structured data from the raw file

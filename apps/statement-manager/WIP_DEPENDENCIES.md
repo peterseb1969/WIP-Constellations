@@ -65,4 +65,4 @@ All terminologies and templates are defined in `data-model/`:
 No external APIs. All data enters via file import:
 - UBS e-banking CSV exports
 - Yuh account statement PDFs
-- Roche payslip PDFs
+- Employer payslip PDFs

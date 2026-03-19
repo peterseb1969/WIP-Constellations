@@ -122,11 +122,11 @@ Where R=reference(10), A=amount, D=valuta date, S=saldo.
 
 ---
 
-## Roche Payslip PDF
+## Employer Payslip PDF
 
-- **Source:** Roche HR system, monthly payslip PDF
+- **Source:** Employer HR system, monthly payslip PDF
 - **File type:** PDF (bilingual English/German)
-- **Parser:** `src/lib/parsers/roche-payslip.ts`
+- **Parser:** `src/lib/parsers/employer-payslip.ts`
 - **Detection:** Content-based -- looks for "Employee Nr." or "Pay date" or "Earnings"
 
 ### Header mapping

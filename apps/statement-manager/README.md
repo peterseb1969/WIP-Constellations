@@ -6,8 +6,8 @@ A personal finance statement management app built on [WIP](https://github.com/yo
 
 - **Accounts** -- register bank accounts, credit cards, and employer records (with IBAN, institution, currency)
 - **Transactions** -- browse and filter imported transactions with two-layer filtering: quick top-level filters (search, date range, account, type) and per-column filter popovers (contains, equals, greater than, less than, empty, not empty)
-- **Payslips** -- view imported Roche payslips with expandable line item detail (earnings, deductions, social contributions, pension)
-- **Import** -- upload UBS CSV exports, Yuh PDF statements, or Roche payslip PDFs; content-based format detection; preview before import; import history with original file download
+- **Payslips** -- view imported employer payslips with expandable line item detail (earnings, deductions, social contributions, pension)
+- **Import** -- upload UBS CSV exports, Yuh PDF statements, or employer payslip PDFs; content-based format detection; preview before import; import history with original file download
 
 ## Pages
 

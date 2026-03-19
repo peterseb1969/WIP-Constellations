@@ -5,14 +5,14 @@ vi.mock('../pdf-extract', () => ({
   extractPdfText: vi.fn(),
 }))
 
-import { toWipPayslip, toWipPayslipLine } from '../roche-payslip'
-import type { ParsedRochePayslip, RochePayslipLine } from '../roche-payslip'
+import { toWipPayslip, toWipPayslipLine } from '../employer-payslip'
+import type { ParsedEmployerPayslip, EmployerPayslipLine } from '../employer-payslip'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeParsed(overrides: Partial<ParsedRochePayslip> = {}): ParsedRochePayslip {
+function makeParsed(overrides: Partial<ParsedEmployerPayslip> = {}): ParsedEmployerPayslip {
   return {
     header: {
       employeeName: 'Peter Sebbel',
@@ -22,14 +22,14 @@ function makeParsed(overrides: Partial<ParsedRochePayslip> = {}): ParsedRochePay
       payDate: '2025-11-25',
       period: '2025-11',
       periodLabel: 'November 2025',
-      company: 'F. Hoffmann-La Roche AG',
+      company: 'Employer AG',
     },
     lines: [
       { code: '1001', description: 'Monthly base salary', amount: 16417, isDeduction: false, basis: null, rate: null, category: 'BASE_SALARY' },
       { code: '2004', description: 'Child allowance', amount: 302.50, isDeduction: false, basis: 302.50, rate: null, category: 'ALLOWANCE' },
       { code: '/411', description: 'AHV contribution', amount: 872.20, isDeduction: true, basis: 16457, rate: 5.30, category: 'SOCIAL_CONTRIBUTION' },
       { code: '6103', description: 'PF Capital savings plan', amount: 161.30, isDeduction: true, basis: null, rate: null, category: 'PENSION' },
-      { code: '4301', description: 'Roche Connect EE', amount: 1641, isDeduction: true, basis: null, rate: null, category: 'ESPP' },
+      { code: '4301', description: 'ESPP contribution', amount: 1641, isDeduction: true, basis: null, rate: null, category: 'ESPP' },
     ],
     summary: {
       gross: 17247,
@@ -45,7 +45,7 @@ function makeParsed(overrides: Partial<ParsedRochePayslip> = {}): ParsedRochePay
   }
 }
 
-function makeLine(overrides: Partial<RochePayslipLine> = {}): RochePayslipLine {
+function makeLine(overrides: Partial<EmployerPayslipLine> = {}): EmployerPayslipLine {
   return {
     code: '1001',
     description: 'Monthly base salary',
@@ -131,7 +131,7 @@ describe('toWipPayslipLine', () => {
   it('maps ESPP line', () => {
     const line = makeLine({
       code: '4301',
-      description: 'Roche Connect EE',
+      description: 'ESPP contribution',
       amount: 1641,
       isDeduction: true,
       category: 'ESPP',

@@ -14,13 +14,13 @@ import { parseUbsCsv, toWipTransaction as ubsToWip } from '@/lib/parsers/ubs-csv
 import { parseYuhPdf, toWipTransaction as yuhToWip } from '@/lib/parsers/yuh-pdf'
 import { extractPdfText } from '@/lib/parsers/pdf-extract'
 import {
-  parseRochePayslip,
+  parseEmployerPayslip,
   toWipPayslip,
   toWipPayslipLine,
-} from '@/lib/parsers/roche-payslip'
+} from '@/lib/parsers/employer-payslip'
 import type { ParsedUbsCsv } from '@/lib/parsers/ubs-csv'
 import type { ParsedYuhPdf } from '@/lib/parsers/yuh-pdf'
-import type { ParsedRochePayslip } from '@/lib/parsers/roche-payslip'
+import type { ParsedEmployerPayslip } from '@/lib/parsers/employer-payslip'
 
 // ---------------------------------------------------------------------------
 // Parser detection
@@ -29,7 +29,7 @@ import type { ParsedRochePayslip } from '@/lib/parsers/roche-payslip'
 type ParsedResult =
   | { type: 'ubs-csv'; data: ParsedUbsCsv }
   | { type: 'yuh-pdf'; data: ParsedYuhPdf }
-  | { type: 'roche-payslip'; data: ParsedRochePayslip }
+  | { type: 'employer-payslip'; data: ParsedEmployerPayslip }
 
 function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | null {
   if (filename.toLowerCase().endsWith('.csv')) return 'ubs-csv'
@@ -38,9 +38,9 @@ function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | null {
 }
 
 /** Detect PDF type by content — looks for signature strings in extracted text */
-function detectPdfType(text: string): 'yuh-pdf' | 'roche-payslip' | null {
+function detectPdfType(text: string): 'yuh-pdf' | 'employer-payslip' | null {
   if (text.includes('Kontoauszug in') || text.includes('Kontoauszug') && text.includes('Yuh')) return 'yuh-pdf'
-  if (text.includes('Employee Nr.') || text.includes('Pay date') || text.includes('Earnings')) return 'roche-payslip'
+  if (text.includes('Employee Nr.') || text.includes('Pay date') || text.includes('Earnings')) return 'employer-payslip'
   return null
 }
 
@@ -377,12 +377,12 @@ function TransactionPreview({
 }
 
 // ---------------------------------------------------------------------------
-// Payslip import preview (Roche)
+// Payslip import preview (employer)
 // ---------------------------------------------------------------------------
 
 interface PayslipPreviewProps {
   file: File
-  parsed: ParsedRochePayslip
+  parsed: ParsedEmployerPayslip
   accounts: Document[]
   onCancel: () => void
   onImported: () => void
@@ -401,11 +401,10 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
   const createImport = useCreateDocument()
   const uploadFile = useUploadFile()
 
-  // Match employer by name containing "Roche" or "Hoffmann"
+  // Match employer account by type
   const matchingEmployer = accounts.find((a) => {
     const type = a.data.account_type as string
-    const name = (a.data.institution as string)?.toLowerCase() ?? ''
-    return type === 'EMPLOYER' && (name.includes('roche') || name.includes('hoffmann'))
+    return type === 'EMPLOYER'
   })
   const effectiveAccountId = selectedAccountId || matchingEmployer?.document_id || ''
 
@@ -464,7 +463,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
           file: fileEntity.file_id,
           import_date: new Date().toISOString(),
           document_type: 'PAYSLIP',
-          parser: 'roche_payslip',
+          parser: 'employer_payslip',
           account: effectiveAccountId,
           transactions_created: linesCreated + 1, // payslip + lines
           period_from: parsed.header.payDate,
@@ -484,7 +483,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
 
   return (
     <div className="bg-surface border border-gray-200 rounded-lg p-6 mb-6">
-      <h3 className="font-semibold text-lg mb-4">Import Preview — Roche Payslip</h3>
+      <h3 className="font-semibold text-lg mb-4">Import Preview — Employer Payslip</h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div>
@@ -653,15 +652,15 @@ export function ImportPage() {
           const { text } = await extractPdfText(original.slice(0))
           const pdfType = detectPdfType(text)
           if (!pdfType) {
-            setParseError('Could not identify this PDF. Expected a Yuh bank statement or Roche payslip.')
+            setParseError('Could not identify this PDF. Expected a Yuh bank statement or employer payslip.')
             return
           }
           if (pdfType === 'yuh-pdf') {
             const result = await parseYuhPdf(original.slice(0))
             setParsed({ type: 'yuh-pdf', data: result })
           } else {
-            const result = await parseRochePayslip(original.slice(0))
-            setParsed({ type: 'roche-payslip', data: result })
+            const result = await parseEmployerPayslip(original.slice(0))
+            setParsed({ type: 'employer-payslip', data: result })
           }
         } catch (err) {
           setParseError(err instanceof Error ? err.message : 'Failed to parse PDF')
@@ -744,7 +743,7 @@ export function ImportPage() {
       )
     }
 
-    if (parsed.type === 'roche-payslip') {
+    if (parsed.type === 'employer-payslip') {
       return (
         <PayslipPreview
           file={selectedFile}
@@ -800,7 +799,7 @@ export function ImportPage() {
               <div>
                 <p className="font-medium">Drop a file here or click to browse</p>
                 <p className="text-sm text-text-muted mt-1">
-                  Supports UBS CSV, Yuh PDF statements, Roche payslip PDFs
+                  Supports UBS CSV, Yuh PDF statements, employer payslip PDFs
                 </p>
               </div>
               <label className="inline-block px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 cursor-pointer">

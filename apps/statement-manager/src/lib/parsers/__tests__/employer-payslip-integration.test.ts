@@ -35,7 +35,7 @@ vi.mock('../pdf-extract', async () => {
   return { extractPdfText }
 })
 
-import { parseRochePayslip, toWipPayslip, toWipPayslipLine } from '../roche-payslip'
+import { parseEmployerPayslip, toWipPayslip, toWipPayslipLine } from '../employer-payslip'
 
 const DATA_DIR = path.resolve(__dirname, '../../../../../../realworlddata')
 
@@ -48,17 +48,17 @@ const payslipFiles = [
 
 const hasRealData = payslipFiles.some((f) => fs.existsSync(path.join(DATA_DIR, f)))
 
-describe.skipIf(!hasRealData)('Roche payslip integration — real files', () => {
+describe.skipIf(!hasRealData)('Employer payslip integration — real files', () => {
   for (const file of payslipFiles) {
     const filePath = path.join(DATA_DIR, file)
     if (!fs.existsSync(filePath)) continue
 
     describe(file, () => {
-      let result: Awaited<ReturnType<typeof parseRochePayslip>>
+      let result: Awaited<ReturnType<typeof parseEmployerPayslip>>
 
       beforeAll(async () => {
         const buf = fs.readFileSync(filePath)
-        result = await parseRochePayslip(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
+        result = await parseEmployerPayslip(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
       })
 
       it('extracts header with employee number and pay date', () => {
