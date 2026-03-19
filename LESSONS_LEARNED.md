@@ -921,4 +921,57 @@ This is the orchestrator role in action — not just deciding what to build, but
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 027, 028, etc.) and include date, category, phase, and severity.*
+## Entry 027 — 2026-03-19
+
+**Category:** Performance analysis — measure, don’t assume
+**Phase:** Hardware benchmarking
+**Severity:** N/A (methodology lesson)
+
+### What happened
+
+Pi 4 with USB SSD showed identical throughput to Pi 4 with SD card (73 vs 74 docs/sec), despite the SSD being 12x faster on random IOPS (27,200 vs 2,317).
+
+The reporter’s cascade of wrong assumptions:
+1. "MongoDB data is on the SD card" — checked, it wasn’t
+2. "The USB drive is a flash stick" — checked, it’s a real SSD
+3. "It must be the CPU" — Peter called this out: *"You give up too fast"*
+
+The actual answer required three diagnostic tools (fio for IOPS, vmstat for CPU, iostat for device utilisation) and a cross-platform comparison (Pi 5 vmstat during the same benchmark). The finding: **both machines are 70% idle. The workload is serialised and latency-bound. Each operation completes ~3.2x faster on Pi 5 due to the compound effect of faster CPU, NVMe, and memory — not because any single resource is saturated.**
+
+### Lesson
+
+1. **"It must be X" is not a diagnosis.** Measure CPU, I/O, and memory simultaneously during the workload. If nothing is saturated, the bottleneck is latency, not throughput.
+2. **Storage benchmarks test the wrong thing.** Sequential bandwidth (hdparm) and even random IOPS (fio) don’t predict application performance when the application is latency-bound and serialised.
+3. **Cross-platform comparison is the diagnostic tool.** Running the same vmstat on both machines revealed the truth: identical utilisation patterns, different per-operation speed. The Pi 5 doesn’t work harder — it works faster.
+
+---
+
+## Entry 028 — 2026-03-19
+
+**Category:** Documentation gap — client library API discovery
+**Phase:** Receipt Scanner experiment (Day 6)
+**Severity:** Medium (caused 9 compilation errors, no PoNIF mistakes)
+
+### What happened
+
+Receipt Claude built the Receipt Scanner in ~2h15m with zero PoNIF mistakes — the rewritten MCP resources worked perfectly. However, the @wip/client and @wip/react tarballs contained no README or API documentation. Receipt Claude had to discover the API surface by extracting `.d.ts` type definitions from the tarballs with `tar -xzf`:
+
+- `useQueryDocuments` takes a `DocumentQueryRequest` object, not positional arguments
+- `Terminology` has `terminology_id`, not `id`
+- Sort uses `sort_by`/`sort_order` strings, not a `sort` array
+- `createDocument` takes `{ template_id, data: {...} }`, not `(templateId, data)`
+- `useWipClient` is already exported from `@wip/react` (Receipt Claude reimplemented it from scratch)
+
+None of these were WIP-conceptual errors. All were API-shape discovery problems that a README would have prevented.
+
+### Fix
+
+WIP-Claude to create README.md files for @wip/client and @wip/react that mirror the quality and completeness of the MCP server resources. These will be bundled inside the tarballs so any fresh Claude (or human developer) has API documentation alongside the type definitions.
+
+### Lesson
+
+**Documentation quality must be uniform across all interfaces.** The MCP resources went from causing 4–10 PoNIF mistakes (Day 2) to zero (Day 6) after the rewrite. The client libraries are now the weakest documentation link — not because the code is bad, but because the API surface is undocumented. The pattern that worked for MCP resources (extract current state → critical review → fact-check against code → revise) should be applied to the client library READMEs.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 029, 030, etc.) and include date, category, phase, and severity.*

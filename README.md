@@ -54,6 +54,7 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Field Report: Day 4](WIP_Journey_Day4.md) | Raspberry Pi deployment, platform bugs, performance |
 | [Field Report: Day 4½](WIP_Journey_Day4_Intermezzo.md) | Cache regression, benchmarking, 7x throughput improvement |
 | [Field Report: Day 5](WIP_Journey_Day5.md) | The reporter discovers its own blind spots |
+| [Field Report: Day 6](WIP_Journey_Day6.md) | Hardware investigation, module audit, Receipt Scanner in 2h15m |
 
 ## Prerequisites
 

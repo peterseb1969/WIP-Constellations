@@ -235,3 +235,5 @@ Shared namespace (`wip`) for vocabularies, app namespaces for domain data, isola
 ---
 
 *Day 5 status: Wednesday evening delivered namespace authorization (P6 Sessions 1–2, three user roles verified), Gemini proved WIP is AI-provider-agnostic (19 prompts, Swiss law imported), three deployment modes verified (headless 281 docs/sec, remote console, full standard 178 docs/sec), Dex upgraded to v2.45.0 for groups, default grants seeded during setup, Receipt Scanner experiment protocol designed, and the namespace strategy codified. 26 lessons learned. WIP-Claude's rushing pattern repeated despite being documented that same evening. The reporter learned humility about time. Peter went to work between sessions. The reporter didn't notice.*
+
+*Next: [Day 6: The Hardware Investigation](WIP_Journey_Day6.md)*
