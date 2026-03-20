@@ -191,39 +191,3 @@ The PDF is bilingual. The parser uses only the English section (before the "Herr
 3. "Non-cash Benefits" section (if present)
 4. "Bank Details" / "Payment Amount" section
 5. German section (ignored)
-
----
-
-## Receipt Scan (paper receipt image)
-
-- **Source:** Photo or scan of a paper receipt (phone camera, scanner)
-- **File type:** JPG, PNG, WEBP, HEIC
-- **Parser:** `src/lib/parsers/receipt-scan.ts`
-- **OCR engine:** Tesseract.js (browser-side, languages: `deu+eng`)
-- **Detection:** File extension based (`.jpg`, `.jpeg`, `.png`, `.webp`, `.heic`)
-
-### Field extraction (best-effort regex on OCR text)
-
-| Extracted Field | WIP Field | Strategy |
-|-----------------|-----------|----------|
-| Store name | `merchant` (on FIN_TRANSACTION) | Known merchant list match, fallback to first text line |
-| Date (DD.MM.YYYY) | `booking_date` | Regex pattern, converted to YYYY-MM-DD |
-| Total amount | `amount` | Line containing TOTAL/SUMME/CHF + price pattern |
-| Payment method | `transaction_type` | Keyword match (BAR, KARTE, TWINT, MAESTRO, VISA) |
-| Line items | `FIN_TRANSACTION_LINE` docs | Lines matching "description + price" or "qty x price description total" patterns |
-| Currency | `currency` | Default CHF, detect EUR/USD if present |
-
-### Editing workflow
-
-All extracted fields are presented in an editable preview. The user is the accuracy layer:
-- **Merchant:** autocomplete from existing counterparty names in WIP, or free text
-- **Line items:** inline editing of description, quantity, unit price, total; add/delete rows; category dropdown per line
-- **Total mismatch warning:** if sum of line items differs from header total
-- **Transaction matching:** auto-suggests existing FIN_TRANSACTION documents within ±3 days and matching amount
-
-### Known limitations
-
-- OCR quality depends heavily on image quality (lighting, focus, paper condition)
-- Thermal receipt prints degrade over time — faded receipts produce poor OCR
-- Column alignment in receipts is frequently lost — items with quantity/unit price may not parse correctly
-- Swiss-German store names with umlauts may be garbled by OCR
