@@ -236,7 +236,7 @@ The second constellation app experiment began. A fresh Claude instance ("Receipt
 | 20:48 | Phase 2 questions: 6 sharp design questions + suggestions (merchants as terminology with synonyms, match as relationship) |
 | ~21:15 | Phase 2 complete: data model proposal with identity field reasoning, creation order, scope boundaries |
 | ~21:25 | Phase 3 complete: 3 terminologies, 2 templates created, 7 test documents — **zero PoNIF mistakes** |
-| 22:05 | Compaction (proactive: saved DESIGN.md and memory files before compaction) |
+| 22:05 | Compaction (Peter triggered: told Claude to save state and compact before implementation) |
 | 22:07 | Phase 4 coding begins |
 | 22:11 | Three parsers working (Coop PDF, Migros multi-receipt PDF, Migros CSV), scaffold committed |
 | 22:19 | All four pages built (Import, Receipts, Detail, Matching) |
@@ -254,7 +254,7 @@ The second constellation app experiment began. A fresh Claude instance ("Receipt
 | PoNIF mistakes (API calls) | 4–10 failed attempts | **Zero** |
 | WIP tutoring from Peter | Extensive | **None** |
 | MCP resources read first | N/A (didn't exist) | **Yes — first two calls** |
-| Pre-compaction state saved | Learned after losing context | **Proactive, first time** |
+| Pre-compaction state saved | Learned after losing context | **Peter-triggered, executed well** |
 | Client library API | Explained by Peter | **Discovered from .d.ts types** |
 | Data model quality | Good (with guidance) | **Excellent (independent)** |
 
@@ -266,7 +266,7 @@ The second constellation app experiment began. A fresh Claude instance ("Receipt
 
 3. **Existing data model** — The shared terminologies (FIN_CURRENCY, FIN_TRANSACTION_CATEGORY) and the Statement Manager's templates were already in WIP. Receipt Claude discovered them via `/explore` and designed around them, not from scratch.
 
-4. **DESIGN.md as compaction insurance** — Receipt Claude saved its complete state (template IDs, parser specs, UI plan, architecture decisions) before compaction. Phase 4 started with zero re-orientation.
+4. **DESIGN.md as compaction insurance** — Peter told Receipt Claude to save state before compaction. The Claude executed well: complete state (template IDs, parser specs, UI plan, architecture decisions) saved to DESIGN.md and memory files. Phase 4 started with zero re-orientation. But the human triggered it — Claudes are not self-aware about context usage.
 
 5. **The phased process** — Explore → Design → Implement → Build. No rushing to code. The data model was reviewed and tested before any React component was written.
 
@@ -359,3 +359,5 @@ A 150k-line platform, built in 50 days, running on a Raspberry Pi, with AI-reada
 *Day 6 status: the morning produced the experiment's most rigorous hardware analysis (Pi 4 latency-bound at 75 docs/sec regardless of storage, 70% idle on both platforms). The module system audit mapped 23 combinations and all three fixes were implemented. The evening rewrote all three MCP resources with fact-checked PoNIF warnings and self-promoting documentation. Receipt Claude built the Receipt Scanner in 2 hours 15 minutes with zero PoNIF mistakes — 3x faster than Day 2, with no WIP tutoring. WIP-Claude ran 8/8 deployment tests passing on Pi (5 bugs found and fixed). The constellation thesis is validated: the shared backend creates compounding value, AI with guardrails builds real apps, documentation compounds across instances, and independent apps produce natively integrated data. 150,366 lines of code. 384 commits. 50 days. One Raspberry Pi.*
 
 *See [Day 5: The Reporter's Blind Spot](WIP_Journey_Day5.md) for the previous day.*
+
+*Next: [Day 7: The Checklist](WIP_Journey_Day7.md)*
