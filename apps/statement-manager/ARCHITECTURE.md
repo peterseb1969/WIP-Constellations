@@ -40,6 +40,7 @@ main.tsx
             ImportPage
               TransactionPreview (UBS CSV + Yuh PDF)
               PayslipPreview (employer payslip)
+              ReceiptScanPreview (scanned paper receipts via Tesseract.js OCR)
               ImportHistoryItem
               AccountSelector
               ImportResult
@@ -92,13 +93,16 @@ pdfjs-dist's `getDocument()` detaches the ArrayBuffer on first use. The import f
 
 ## Import parsers
 
-Three parsers in `src/lib/parsers/`:
+Four parsers in `src/lib/parsers/`:
 
 | Parser | File | Input | Output |
 |--------|------|-------|--------|
 | UBS CSV | `ubs-csv.ts` | UBS e-banking CSV export (`;`-delimited) | `ParsedUbsCsv` with header + transactions |
 | Yuh PDF | `yuh-pdf.ts` | Yuh account statement PDF | `ParsedYuhPdf` with header + transactions |
 | employer payslip | `employer-payslip.ts` | employer payslip PDF | `ParsedEmployerPayslip` with header + lines + summary |
+| Receipt scan | `receipt-scan.ts` | JPG/PNG image of paper receipt | `ExtractedReceipt` with best-effort fields + raw OCR text |
+
+The first three parsers are deterministic. The receipt scanner uses Tesseract.js for browser-side OCR, then regex extraction for best-effort field detection. All extracted fields are presented in an editable preview where the user corrects errors before import.
 
 Each parser has:
 - A `parse*` function that extracts structured data from the raw file

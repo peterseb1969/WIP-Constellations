@@ -21,6 +21,9 @@ import {
 import type { ParsedUbsCsv } from '@/lib/parsers/ubs-csv'
 import type { ParsedYuhPdf } from '@/lib/parsers/yuh-pdf'
 import type { ParsedEmployerPayslip } from '@/lib/parsers/employer-payslip'
+import { ocrImage, extractReceiptFields } from '@/lib/parsers/receipt-scan'
+import type { ExtractedReceipt } from '@/lib/parsers/receipt-scan'
+import { ReceiptScanPreview } from '@/components/ReceiptScanPreview'
 
 // ---------------------------------------------------------------------------
 // Parser detection
@@ -30,10 +33,15 @@ type ParsedResult =
   | { type: 'ubs-csv'; data: ParsedUbsCsv }
   | { type: 'yuh-pdf'; data: ParsedYuhPdf }
   | { type: 'employer-payslip'; data: ParsedEmployerPayslip }
+  | { type: 'receipt-scan'; data: ExtractedReceipt }
 
-function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | null {
-  if (filename.toLowerCase().endsWith('.csv')) return 'ubs-csv'
-  if (filename.toLowerCase().endsWith('.pdf')) return 'pdf'
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic']
+
+function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | 'image' | null {
+  const lower = filename.toLowerCase()
+  if (lower.endsWith('.csv')) return 'ubs-csv'
+  if (lower.endsWith('.pdf')) return 'pdf'
+  if (IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext))) return 'image'
   return null
 }
 
@@ -602,6 +610,7 @@ export function ImportPage() {
   const [parsed, setParsed] = useState<ParsedResult | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
   const [parsing, setParsing] = useState(false)
+  const [ocrProgress, setOcrProgress] = useState(0)
 
   const { data: importData, isLoading } = useDocuments({
     template_value: 'FIN_IMPORT',
@@ -625,7 +634,28 @@ export function ImportPage() {
 
     const fileType = detectParserByFilename(file.name)
     if (!fileType) {
-      setParseError(`Unsupported file type: ${file.name}. Expected a .csv or .pdf file.`)
+      setParseError(`Unsupported file type: ${file.name}. Expected .csv, .pdf, or image file.`)
+      return
+    }
+
+    if (fileType === 'image') {
+      setParsing(true)
+      setOcrProgress(0)
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        try {
+          const buffer = e.target?.result as ArrayBuffer
+          const { text, confidence } = await ocrImage(buffer, setOcrProgress)
+          const extracted = extractReceiptFields(text, confidence)
+          setParsed({ type: 'receipt-scan', data: extracted })
+        } catch (err) {
+          setParseError(err instanceof Error ? err.message : 'OCR failed')
+        } finally {
+          setParsing(false)
+          setOcrProgress(0)
+        }
+      }
+      reader.readAsArrayBuffer(file)
       return
     }
 
@@ -755,6 +785,18 @@ export function ImportPage() {
       )
     }
 
+    if (parsed.type === 'receipt-scan') {
+      return (
+        <ReceiptScanPreview
+          file={selectedFile}
+          extracted={parsed.data}
+          accounts={accounts}
+          onCancel={handleCancel}
+          onImported={handleImported}
+        />
+      )
+    }
+
     return null
   }
 
@@ -782,7 +824,9 @@ export function ImportPage() {
           {parsing ? (
             <div className="space-y-3">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-              <p className="font-medium">Parsing {selectedFile?.name}...</p>
+              <p className="font-medium">
+                {ocrProgress > 0 ? `OCR: ${ocrProgress}% — ${selectedFile?.name}` : `Parsing ${selectedFile?.name}...`}
+              </p>
             </div>
           ) : selectedFile && parseError ? (
             <div className="space-y-3">
@@ -799,14 +843,14 @@ export function ImportPage() {
               <div>
                 <p className="font-medium">Drop a file here or click to browse</p>
                 <p className="text-sm text-text-muted mt-1">
-                  Supports UBS CSV, Yuh PDF statements, employer payslip PDFs
+                  Supports UBS CSV, Yuh PDF, employer payslip PDF, receipt scan (JPG/PNG)
                 </p>
               </div>
               <label className="inline-block px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 cursor-pointer">
                 Choose File
                 <input
                   type="file"
-                  accept=".csv,.pdf"
+                  accept=".csv,.pdf,.jpg,.jpeg,.png,.webp,.heic"
                   onChange={handleFileSelect}
                   className="hidden"
                 />

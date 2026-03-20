@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-20 -- Receipt scan import
+
+- Added: Paper receipt scanning via Tesseract.js OCR (browser-side, offline, no cloud dependency)
+- Added: Editable receipt preview with inline line item editing, merchant autocomplete, category selection, add/delete rows
+- Added: Transaction matching — auto-suggests existing transactions by date and amount for linking receipt line items
+- Added: Total mismatch warning (sum of line items vs receipt total)
+- Added: FIN_TRANSACTION_LINE template for storing receipt line items linked to transactions
+- Added: Support for JPG, PNG, WEBP, HEIC image uploads in the import page
+
 ## 2026-03-14 -- Parser tests and documentation
 
 - Added: Integration tests for Yuh PDF and employer payslip parsers using pdfjs-dist legacy build against real files

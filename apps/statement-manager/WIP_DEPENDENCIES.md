@@ -39,6 +39,12 @@ This document lists all WIP terminologies, templates, and cross-references used 
 - **Fields this app reads/writes:** payslip (ref: FIN_PAYSLIP), code, description, category (term: FIN_PAYSLIP_LINE_CATEGORY), amount, is_deduction, basis, rate
 - **Used by:** PayslipsPage (expandable detail), ImportPage (bulk create)
 
+### FIN_TRANSACTION_LINE
+- **Purpose:** Individual line items from scanned receipts, linked to a financial transaction
+- **Identity fields:** `transaction` + `description` + `total`
+- **Fields this app reads/writes:** transaction (ref: FIN_TRANSACTION), description, quantity, unit_price, total, category (term: FIN_TRANSACTION_CATEGORY)
+- **Used by:** ImportPage (receipt scan import)
+
 ### FIN_IMPORT
 - **Purpose:** Import history records linking uploaded files to created documents
 - **Identity fields:** `filename` + `import_date`
@@ -52,6 +58,7 @@ Currently no cross-app references. All templates reference other templates withi
 - FIN_TRANSACTION.account --> FIN_ACCOUNT
 - FIN_PAYSLIP.employer --> FIN_ACCOUNT
 - FIN_PAYSLIP_LINE.payslip --> FIN_PAYSLIP
+- FIN_TRANSACTION_LINE.transaction --> FIN_TRANSACTION
 - FIN_IMPORT.account --> FIN_ACCOUNT
 
 ## Seed file location
