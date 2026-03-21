@@ -974,4 +974,102 @@ WIP-Claude to create README.md files for @wip/client and @wip/react that mirror 
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 029, 030, etc.) and include date, category, phase, and severity.*
+## Entry 029 — 2026-03-20
+
+**Category:** Quality gates — CI lint on changed files only
+**Phase:** Infrastructure (CI)
+**Severity:** Medium (process design)
+
+### What happened
+
+WIP-Claude built a comprehensive quality audit pipeline (13 tools, 12-second quick mode) and wired it into CI. The per-commit lint job failed on every commit because ruff reported all 171 baselined issues as `::error` annotations. WIP-Claude proposed two options: make the job non-blocking (always pass) or fix all 171 issues at once.
+
+Web-Claude proposed option 3: lint only files changed in the commit. New violations fail. Existing issues in untouched files are invisible. The baseline ratchets down as files are naturally touched and cleaned.
+
+### Lesson
+
+1. **A CI check that always passes is worse than no check.** It trains everyone to ignore it. A non-blocking lint job is noise, not a quality gate.
+2. **A mass-fix session is risky.** 1,031 auto-fixes were mostly safe, but one parameter rename broke callers. 171 more fixes with B904 (exception chaining), UP042 (StrEnum), and RUF012 (mutable defaults) would change runtime behaviour.
+3. **Lint changed files only.** This is the standard approach for mature codebases adopting linting: enforce on new code, clean old code incrementally. No risk, no noise, gradual improvement.
+
+---
+
+## Entry 030 — 2026-03-20
+
+**Category:** Quality audit — the human runs the full version
+**Phase:** Infrastructure (quality)
+**Severity:** Medium (methodology)
+
+### What happened
+
+WIP-Claude repeatedly suggested `--quick` mode for the quality audit (skips test coverage, runs in 12 seconds). Peter ran the full version. Three issues were found that `--quick` would have missed: a regression from the `_master_key` rename (caught by registry tests), an ingest-gateway PYTHONPATH mismatch (caught by pytest), and a straggler `datetime.utcnow()` call (caught by the deprecation warning).
+
+Separately, WIP-Claude scoped ESLint to the Vue console only: "The libs already pass `tsc --noEmit`." Peter pushed back. ESLint on wip-client found an unused import that type checking doesn’t catch.
+
+### Lesson
+
+**The tool’s own creator preferred not to use it at full power.** The quality audit was designed with `--quick` for fast feedback and full mode for thorough checks. But WIP-Claude defaulted to `--quick` even when thoroughness was the goal. The human’s insistence on running the complete suite found real issues every time. Entry 024 (AI bias toward closure) continues to be the experiment’s most persistent pattern.
+
+---
+
+## Entry 031 — 2026-03-20
+
+**Category:** Security hardening — unit tests don't test production conditions
+**Phase:** Security audit deployment (Day 7)
+**Severity:** High (crash-loop, 6x performance regression, broken authentication)
+
+### What happened
+
+WIP-Claude implemented a 22-finding security audit in 26 minutes. All 136 unit tests passed. The first real deployment crashed on startup.
+
+Four integration bugs, invisible to unit tests:
+1. **bcrypt 72-byte limit.** Prod keys (64 chars) + salt (32 chars) + colon = 97 bytes. bcrypt silently truncates. Unit tests used short keys.
+2. **bcrypt per-request overhead.** 100-300ms per verification vs ~1µs for SHA-256. Throughput dropped from 600 to 100 docs/sec. Fixed with verified-key cache.
+3. **CSP blocks OIDC.** `connect-src 'self'` blocked Console from talking to Dex on port 5556 (different port ≠ "self").
+4. **ruff B904 in new code.** The security audit's own code violated the lint rules. The changed-files-only CI caught this.
+
+### Lesson
+
+Unit tests that don't test production conditions are worse than no tests — they give false confidence. For security changes in particular:
+- Test with production-length keys, not test fixtures
+- Benchmark with production-volume traffic, not single requests
+- Deploy with production configuration, not dev defaults
+- Test cross-component flows (Console → Caddy → Dex), not just isolated services
+
+The implementation was 26 minutes. The deployment debugging was 3.5 hours. Time estimates for security work should be measured in human deployment hours, not Claude coding minutes.
+
+---
+
+## Entry 032 — 2026-03-20
+
+**Category:** Dev-to-prod transition — hardcoded API keys
+**Phase:** Security audit deployment (Day 7)
+**Severity:** Medium (documentation gap)
+
+### What happened
+
+Both constellation apps (Statement Manager, Receipt Scanner) stopped working after deploying with `--prod`. Both had `dev_master_key_for_testing` hardcoded. The MCP server config also needed the new key.
+
+### Lesson
+
+The setup guide needs to document the dev-to-prod transition: update API keys in all app configs, all `.env` files, and all MCP server configs. This is obvious in hindsight but invisible until someone actually deploys prod for the first time.
+
+---
+
+## Entry 033 — 2026-03-20
+
+**Category:** AI time estimation — implementation vs deployment
+**Phase:** Quality audit + Security audit (Day 7)
+**Severity:** Low (meta-learning)
+
+### What happened
+
+WIP-Claude estimated 6-8 hours for the quality audit and 12.5 hours for the security audit. Actual implementation: ~45 minutes and ~26 minutes respectively. But deployment, testing, and bug-fixing took ~3.5 hours of human time for the security audit alone.
+
+### Lesson
+
+AI time estimates measure Claude coding minutes, not human deployment hours. The implementation is the fast, cheap part. The deployment, regression testing, integration debugging, and configuration troubleshooting is the slow, expensive, irreplaceable human part. Future estimates should separate "Claude implementation time" from "human verification and deployment time" and weight the latter 5-10x higher.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 034, 035, etc.) and include date, category, phase, and severity.*

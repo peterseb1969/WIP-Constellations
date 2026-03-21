@@ -160,6 +160,97 @@ Peter redeployed on both Pis with the post-audit code:
 
 ---
 
-*Day 7 status: the morning shifted focus from building to publishing — 12 TODO items prioritised, setup guide rewritten, two overclaims in the Day 6 narrative honestly corrected (the reporter appreciates not being allowed to embellish). While Peter was at work, WIP-Claude was asked for a plan and delivered a fully operational quality pipeline — 13 tools, 1,031 auto-fixes, one real bug found, and one self-inflicted regression. Peter came home, ran the full audit instead of --quick, and found three issues that WIP-Claude's preferred abbreviation would have missed. The CI lint was redesigned to check only changed files — the kind of boring, correct solution that nobody proposes first but everyone wishes they had. Both Pi platforms confirmed zero performance regression, which is the most exciting kind of nothing.*
+## Friday Evening
+
+### The Wrong Claude, The Wrong App, and 21 Minutes
+
+Peter accidentally asked Constellation-Claude (the Statement Manager's builder) to add OCR receipt scanning — a feature that belongs in the Receipt Scanner. Constellation-Claude didn't object. From design to working implementation: 21 minutes. It reused the payslip line item pattern (FIN_PAYSLIP_LINE), which was the wrong data model (should be FIN_RECEIPT_LINE in the Receipt Scanner). Peter caught it, asked Constellation-Claude to revert via git, and cleaned up the orphaned FIN_TRANSACTION_LINE template in WIP.
+
+**Findings:** Any Claude familiar with the process can modify any app in the constellation, even one it didn't build. The Claudes are interchangeable — knowledge lives in the documentation and code, not in the instance. Also: humans rush things too, and git makes human mistakes as reversible as AI mistakes.
+
+**Gap found:** The MCP server has `create_template` and `activate_template` but no `deactivate_template`. A Claude that creates a template by mistake can't undo it through MCP. Added to WIP-Claude's backlog.
+
+### The Security Audit: 12.5 Hours in 26 Minutes
+
+WIP-Claude had already prepared a security plan during the earlier session — 22 findings across 4 severity tiers (Critical, High, Medium, Low), 5 implementation phases, estimated at 12.5 hours.
+
+Peter read the plan, answered the design questions (per-IP rate limiting, 40,000/min, 100MB configurable upload limit, allowlist for content types, no bcrypt migration — just reinstall from scratch), and said "implement Phase 1 now."
+
+WIP-Claude implemented Phase 1 in 7 minutes. Then jumped into Phase 2 without asking (Entry 025). Peter let it run — the plan recommended doing Phases 1+2 together. Then Phase 3 started without asking. Then Phase 4. Then Phase 5. Parallel agents were deployed for documentation and K8s NetworkPolicies.
+
+At 5% context remaining, WIP-Claude was running the test suite. At 3%, fixing the three test failures from the bcrypt migration. At 2%, checking syntax across all modified files. At 1%, verifying reporting-sync and ingest-gateway. Auto-compaction hit mid-sentence.
+
+Post-compaction, WIP-Claude reconstituted from its plan file (`twinkly-shimmying-mist.md` — the fire-proof post-it with the world's most whimsical filename), confirmed all work was in the working directory, and committed.
+
+**Total implementation time: ~26 minutes.** Estimated: 12.5 hours. Off by a factor of 29. Or, for fans of Douglas Adams, close enough to 42.
+
+### The Deployment Bug Parade
+
+Then Peter deployed. And reality happened.
+
+**Bug 1 — bcrypt 72-byte limit.** Production API keys (64 chars) + random salt (32 chars) + colon = 97 bytes. bcrypt silently truncates at 72 bytes. Hash computed on truncated input, verification on different truncation, nothing matches, all four core services crash-loop. Fix: SHA-256 pre-hash before bcrypt (the standard pattern for long inputs). 136 unit tests had passed because test keys were short.
+
+**Bug 2 — bcrypt per-request performance.** SHA-256 verification: ~1 microsecond. bcrypt verification: ~100-300ms. That's the point of bcrypt. But with 600 requests/second, that's 600 bcrypt operations per second. Mac throughput dropped from 600 to 100 docs/sec — a 6x regression. Fix: cache verified API keys (first request ~3ms, subsequent ~0ms).
+
+**Bug 3 — CSP blocks OIDC login.** The security header `connect-src 'self'` blocked the Console from talking to Dex on port 5556 (different port ≠ "self"). Fix: include Dex endpoint in CSP for localhost mode.
+
+**Bug 4 — ruff B904 violations in new code.** The security audit's own code introduced new lint violations (exception chaining). The CI changed-files-only lint caught them immediately — the system worked.
+
+All four bugs were integration failures invisible to unit tests. The bcrypt 72-byte limit is especially instructive: a well-known library limitation, a standard mitigation pattern, and not a single test exercised production-length keys. Unit tests that don't test production conditions aren't just incomplete — they're actively misleading.
+
+### The Apps Broke
+
+Both the Statement Manager and the Receipt Scanner stopped working against the prod deployment. Root cause in both cases: `dev_master_key_for_testing` hardcoded in source files and `.env`. A fresh prod install generates new API keys, and the apps didn't know the new keys.
+
+Fixing required:
+1. Updating the MCP server config with the new API key
+2. Re-seeding both apps' data models via MCP
+3. Updating each app's `.env` or config with the new key
+
+**New lesson:** The setup guide ("How to prepare for your first Claude-Date") needs to document that switching from dev to prod requires updating API keys in all app configs and MCP server configs. This is obvious in hindsight but invisible until you actually deploy prod for the first time.
+
+---
+
+## Day 7 Final Status
+
+### Housekeeping List Progress
+
+| # | Task | Status |
+|---|---|---|
+| 1 | Preparation document update | ✅ Done |
+| 2 | Constellation Claude upgrade (credit card statements) | ⬜ Not started |
+| 3 | "Stable release" checklist | 🟡 Partially — quality audit + security audit are foundations |
+| 4 | K8s deployment + benchmarking | 🟡 NetworkPolicies created, not yet deployed |
+| 5 | E2E testing / smoke tests | 🟡 Foundation laid |
+| 6 | Code review / Review Claude | ✅ Done differently — quality audit pipeline |
+| 7 | Repo naming / Receipt Scanner release | ⬜ Not started |
+| 8 | Peter's README headers | ⬜ Not started |
+| 9 | "First Claude-Date" checklist | 🟡 Setup guide exists, needs prod key rotation note |
+| 10 | Tailscale / Cloudflare doc | ⬜ Not started (security audit is prerequisite — now done) |
+| 11 | AI-assisted coding doc — obsolete? | ⬜ Not decided |
+| 12 | Journey docs location | ⬜ Not decided |
+
+### What Day 7 Produced
+
+**Quality audit pipeline:** 13 tools, 12-second quick mode, CI integration, 1,031 auto-fixes, one real bug found (duplicate dict key), ratchet baseline established.
+
+**Security audit:** 22 findings addressed across 5 phases. CORS lockdown, file upload limits, rate limiting, bcrypt API key hashing, security headers, content-type validation, debug endpoint gating, K8s NetworkPolicies, production check script, formal security audit report, Bandit + pip-audit CI integration. Four deployment bugs found and fixed through actual deployment.
+
+**Documentation:** Setup guide rewritten, Day 6 overclaims corrected, stale reference audit (42 references across CLAUDE.md + slash commands), MCP deactivation gap identified.
+
+### Time Estimates vs Reality
+
+| Task | Estimated | Actual |
+|---|---|---|
+| Quality audit (plan + implement) | 6-8 hours | ~45 minutes |
+| Security audit (plan + implement) | 12.5 hours | ~26 minutes |
+| Deployment bug fixing | Not estimated | ~2 hours |
+| Regression testing | Not estimated | ~1.5 hours |
+
+The implementation is the fast, cheap part. The deployment, testing, and bug-fixing is the slow, expensive, irreplaceable human part. AI time estimates should be measured in human hours, not Claude minutes.
+
+---
+
+*Day 7 status: twelve TODO items were triaged. The quality audit pipeline and security audit were built and deployed. The security audit's 26-minute implementation was followed by a 3.5-hour deployment debugging session that found four integration bugs invisible to 136 passing unit tests. The apps broke when the platform switched to prod mode because both had dev API keys hardcoded. WIP-Claude raced compaction three times (winning twice, losing once mid-sentence). The wrong Claude was asked to build the wrong feature in the wrong app and delivered it in 21 minutes — proving that the documentation, not the instance, carries the knowledge. Estimated total: 20+ hours. Actual Claude time: ~1.5 hours. Actual human time: considerably more. The human is the slow, expensive, irreplaceable part.*
 
 *See [Day 6: The Hardware Investigation](WIP_Journey_Day6.md) for the previous day.*
