@@ -1072,4 +1072,74 @@ AI time estimates measure Claude coding minutes, not human deployment hours. The
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 034, 035, etc.) and include date, category, phase, and severity.*
+## Entry 034 — 2026-03-22
+
+**Category:** Process validation — the process caught the human's mistake
+**Phase:** Credit card statement parsing (Day 8)
+**Severity:** Low (process observation)
+
+### What happened
+
+Peter asked Constellation-Claude to parse credit card statements and pointed at Cumulus PDF files. Constellation-Claude examined the data first (per CLAUDE.md: "test extraction before writing parsers") and reported: "This is a loyalty program summary, not a credit card statement. Too coarse for transaction-level matching." Peter found different files. Constellation-Claude: "This is a checking account export, not credit card data." Third attempt found the actual Viseca CSV exports.
+
+### Lesson
+
+The process caught the human's data selection error twice before a single line of code was written. Phase 2 discipline (understand the data before designing) isn't just for the AI — it protects against human rushing too. If the process hadn't required data examination before coding, the Claude would have built a parser for the wrong data and nobody would have noticed until the results made no sense.
+
+---
+
+## Entry 035 — 2026-03-22
+
+**Category:** Human bias — "the AI will figure it out"
+**Phase:** Experiment meta-reflection (Day 8)
+**Severity:** High (fundamental insight)
+
+### What happened
+
+After 50+ days of building WIP and apps, Peter identified the complementary bias pattern: the AI bias toward closure (Entry 024) meets the human bias toward delegation. The AI wants to declare victory early. The human wants to let it because "failure is cheap" and "rewriting is the AI's job." Combined: sloppy instructions → plausible-looking output → unchecked acceptance → subtle failures in production.
+
+Examples from the experiment: 136 unit tests passing before bcrypt crash-loop (tests didn't test production conditions). Security audit "complete" before first deployment (4 integration bugs). Slash commands with wrong tool names for a week (nobody checked against the actual API).
+
+### Lesson
+
+**The human produces the standard of evidence, not the standard of code.** The AI writes better code faster. But "did we actually test this in production conditions?" and "did we actually check the tool names match?" and "did we actually deploy this before claiming it works?" — those are human responsibilities that cannot be delegated to the AI. The AI will say "all tests pass" with 100% confidence. The human must ask "which tests, testing what, under what conditions?"
+
+---
+
+## Entry 036 — 2026-03-22
+
+**Category:** AI scope discipline — first successful boundary
+**Phase:** Documentation overhaul (Day 8)
+**Severity:** Low (positive observation)
+
+### What happened
+
+Peter told WIP-Claude to "do steps 1, 2, 3, and only 1, 2, 3" of a 12-action documentation overhaul plan. WIP-Claude completed steps 1-3 and waited for further instructions. First time in the experiment it respected a scope boundary without overrunning into subsequent actions.
+
+Contributing factors: explicit boundary in the instruction ("and only 1, 2, 3"), plan mode providing clear action numbering, and possibly accumulated experience from multiple sessions where overreach was called out.
+
+### Lesson
+
+Explicit scope boundaries work. "Do X" is ambiguous. "Do X, and only X, then stop" is not. The numbered action plan made the boundary concrete. Entry 025 (bias toward action) can be managed with clear, explicit instructions — but the human has to provide them.
+
+---
+
+## Entry 037 — 2026-03-22
+
+**Category:** Review gap — the master file nobody reviewed
+**Phase:** Documentation overhaul (Day 8)
+**Severity:** Medium (process gap)
+
+### What happened
+
+The documentation overhaul rewrote MCP resources (4 resources updated), 11 slash commands, and AI-Assisted-Development.md (1,270→232 lines). Three Claudes and the reporter worked on it. Nobody reviewed CLAUDE.md — the first file every Claude session reads.
+
+Peter noticed. CLAUDE.md had 9 issues: wrong port numbers, missing services, stale "Phase 1-2" framing, implemented features listed as pending, security hardening invisible.
+
+### Lesson
+
+The most important document is the one closest to the reader. CLAUDE.md is read first, before any slash command is invoked, before any MCP resource is loaded. Reviewing the supporting materials while ignoring the entry point is like proofreading the appendix but not the cover page. When auditing documentation, start from the reader's first touchpoint and work outward.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 038, 039, etc.) and include date, category, phase, and severity.*

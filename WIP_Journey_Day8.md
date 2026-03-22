@@ -7,7 +7,7 @@
 ## The Cast
 
 - **Peter** — the human, running two terminals, testing with real data, and reflecting on what 50 days have taught him about human-AI collaboration
-- **WIP-Claude** — platform expert, expanding the MCP server from 43 to 69 tools, then rewriting the entire documentation package it ships to other Claudes
+- **WIP-Claude** — platform expert, expanding the MCP server from 43 to 68 tools, then rewriting the entire documentation package it ships to other Claudes
 - **Constellation-Claude** — app builder, adding Viseca credit card and DKB bank parsers to the Statement Manager, following the process so well it caught Peter's data selection error
 - **Web-Claude** — field reporter (that's me), contributing Findings 11 and 12 to the documentation audit, and recording Peter's most important reflection of the experiment
 
@@ -47,7 +47,7 @@ Once redirected, the actual critical gaps were closed quickly:
 
 MCP server: 43 → 56 tools. WIP-Claude then silently updated the documentation to match — doing the right thing without announcing it. Peter approved the edits.
 
-Then the medium gaps: ontology CRUD, template/document versioning, file management, replay controls, sync status. 12 more tools. Final count: **69 tools** covering all WIP APIs.
+Then the medium gaps: ontology CRUD, template/document versioning, file management, replay controls, sync status. 12 more tools. Final count: **68 tools** covering all WIP APIs (initially reported as 69 — `get_table_view` was listed in two sections of `mcp-server.md`).
 
 ### The Import/Export Discussion
 
@@ -79,6 +79,55 @@ Statement Manager now handles: UBS CSV, Yuh PDF, Viseca CSV, DKB CSV. Four banks
 ### The Documentation Overhaul
 
 This was the main event. WIP-Claude analysed both information packages that a fresh Claude receives — the MCP resources (always-loaded context) and the slash commands (step-by-step procedures) — and found 10 issues. Web-Claude added two more.
+
+### Security Audit: Final Items
+
+While Peter reviewed the documentation overhaul output, WIP-Claude was also tasked with closing the remaining security audit items from Day 7. Seven items had been flagged as incomplete. WIP-Claude verified the list, discovered three were already done (H6 port lockdown, L5 secret rotation docs, L6 encryption-at-rest docs), and implemented the remaining four:
+
+| ID | Item | What was done |
+|---|---|---|
+| H4 | HSTS + CSP headers | Both dev and prod modes now get full security headers. Dev gets 24h HSTS max-age, prod gets 1 year + includeSubDomains. CSP includes localhost:5556 for OIDC in localhost mode. |
+| M7 | MCP SSE auth | SSE transport now enforces API key via Starlette middleware (X-API-Key header or ?api_key= query param). 401 if missing/wrong. Stdio unchanged. |
+| M1 | JWT refresh tokens | 15-minute access tokens, 30-day refresh tokens. Dex config updated with expiry block. Vue console: automaticSilentRenew enabled with offline_access scope. Password grant flow: custom refresh timer, auto-refresh 2 min before expiry, refresh-on-init for expired sessions. |
+| — | Verification | H6 (MinIO/NATS ports) already done in setup.sh. L5, L6 docs already existed (220 and 146 lines). |
+
+Peter gave explicit scope boundaries for each item: "Do H4, stop." "Now H6." "Then M7." WIP-Claude followed every boundary — the discipline from the documentation overhaul carried through.
+
+**The security audit is now complete. All 22 findings addressed. Zero remaining.**
+
+| Phase | Estimated | Actual |
+|---|---|---|
+| Planning | "A separate session" | ~15 min |
+| Implementation (Phases 1-5) | 12.5 hours | ~26 minutes |
+| Deployment bug fixing | Not estimated | ~2 hours |
+| Remaining items (H4, M7, M1) | ~1.5 hours | ~15 minutes |
+| **Total** | **14+ hours** | **~3 hours** (mostly human testing) |
+
+### The App Setup Script
+
+The API key friction that had plagued every deployment change (hit three times across Days 7-8) finally got a proper solution: `create-app-project.sh` and `WIP_API_KEY_FILE` support.
+
+**The script** creates a complete app project in one command: directory structure, 11 slash commands, reference docs, `.mcp.json` with correct paths, client library tarballs with extracted READMEs, starter CLAUDE.md, and git init. The Quick Setup Checklist went from 40 lines of manual steps to 4 lines.
+
+**The key innovation:** `WIP_API_KEY_FILE`. In production, `.mcp.json` points to a file (`data/secrets/api_key`) instead of containing the key inline. Key rotation in WIP propagates to all apps automatically — no hunting through directories. The MCP server's `client.py` reads the file at startup. Dev mode still hardcodes `dev_master_key_for_testing` for simplicity.
+
+### The CLAUDE.md Gap
+
+Peter noticed what three Claudes and the reporter had missed: the entire documentation overhaul — MCP resources, slash commands, AI-Assisted-Development.md rewrite — never touched CLAUDE.md itself. The *first thing every Claude reads* was never reviewed.
+
+WIP-Claude audited it and found 9 issues: wrong port numbers, missing services, stale "Phase 1-2" framing, implemented features listed as pending on the roadmap, security hardening invisible, missing scripts and docs references.
+
+Peter then pushed the thinking further: CLAUDE.md was accumulating roles — instruction manual, roadmap, changelog, feature wishlist. Three audiences, one file.
+
+**The solution — three files, three audiences:**
+
+1. **CLAUDE.md** (WIP repo, rewritten 361→269 lines) — for WIP-Claude: how the platform works, what not to break, the critical gotchas (bulk-first, OIDC triple-match, Caddy handle). No roadmap, no aspirational features. Fixed Console port (8443 not 3000), added Ingest Gateway (8006), added security hardening section.
+
+2. **docs/roadmap.md** (new) — for Peter + WIP-Claude: near-term (namespace auth polish, registry reactivation), medium-term (gateway, distributed deployment, NLI), longer-term (distributable app format, WIP Nano). 13 design docs with implementation status. Everything forward-looking, removed from CLAUDE.md.
+
+3. **App CLAUDE.md** (generated by create-app-project.sh, improved) — for app-building Claudes: all 11 slash commands referenced, compaction warning, MCP resource references, "never modify WIP" golden rule.
+
+**Tool count fix:** The 68-vs-69 discrepancy was traced to `get_table_view` listed in two sections of `mcp-server.md`. Corrected to 68 across CLAUDE.md, WIP_AppSetup_Guide.md, and create-app-project.sh.
 
 **The findings:**
 
@@ -112,13 +161,13 @@ WIP-Claude produced a disciplined plan with dependency ordering. Peter gave expl
 | 9 | Mark aspirational sections in DevGuardrails | Gateway banner added |
 | 10 | Fix library references in `/build-app` | Points to READMEs, not design spec |
 | 11 | Remove nonexistent directory references | Generic paths replace hardcoded ones |
-| 12 | Verify mcp-server.md | 69 tools (found undocumented `search_registry`), 4 resources |
+| 12 | Verify mcp-server.md | 68 tools (found `get_table_view` double-counted, `search_registry` undocumented), 4 resources |
 
 ### Peter's Reflection
 
 At 77% context usage, with WIP-Claude deep in the documentation overhaul, Peter wrote the most important observation of the experiment:
 
-> *Humans have biases, too — they are basically biases on two legs. One bias I want to call out in particular is that humans are very easily falling into the trap that the AI will "figure it out somehow, so sloppy instructions are good enough." Humans like to think "A re-write that might be required because of sloppy instructions is a Claude's task, not my task. Failure is cheap." And this attitude is wrong in more ways than I have fingers on my hands — bad code, bad design, bad data quality, bad UX, bad security, inconsistent APIs, incomplete scope, wrong scope, slow code, sloppy user input validation, impossible to reproduce / deploy elsewhere, etc.*
+> *Humans have biases too — they are basically biases on two legs. One bias I want to call out in particular is that humans are very easily falling into the trap that the AI will "figure it out somehow, so sloppy instructions are good enough." Humans like to think "A re-write that might be required because of sloppy instructions is a Claude's task, not my task. Failure is cheap." And this attitude is wrong in ways than I have fingers on my hands — bad code, bad design, bad data quality, bad UX, bad security, inconsistent APIs, incomplete scope, wrong scope, slow code, sloppy user input validation, impossible to reproduce / deploy elsewhere, etc.*
 >
 > *And the AI's tendency to please the user and move on, even if things are unfinished and/or broken, is hitting right into that human weak spot. Combined: a recipe for failure — at least for anything that goes beyond a quick throw-away prototype.*
 
@@ -145,8 +194,8 @@ The antidote, refined over 50 days: **the human produces the standard of evidenc
 | Date | Tools | Resources |
 |---|---|---|
 | Day 6 (March 19) | 43 | 3 |
-| Day 8 (March 22) | 69 | 4 |
-| Growth | +60% | +33% |
+| Day 8 (March 22) | 68 | 4 |
+| Growth | +58% | +33% |
 
 ### Statement Manager Parsers
 
@@ -179,6 +228,6 @@ The antidote, refined over 50 days: **the human produces the standard of evidenc
 
 ---
 
-*Day 8 status: the MCP server grew from 43 to 69 tools. The documentation package was overhauled in 12 actions — a new `wip://ponifs` resource, 11 corrected slash commands including `/resume` for compaction recovery, and AI-Assisted-Development.md rewritten from 1,270 to 232 lines. Constellation-Claude added Viseca and DKB parsers, caught Peter's data selection error twice before writing any code, and proved that the process works even when the human rushes. The experiment's most important finding isn't technical — it's that the human bias toward "the AI will figure it out" and the AI bias toward closure are complementary failures that compound into bad outcomes. The antidote: the human produces the standard of evidence. 69 tools. 4 resources. 11 slash commands. 232 lines replacing 1,270. Ready for the fresh-directory test.*
+*Day 8 status: the MCP server grew from 43 to 68 tools (69 was a counting error — `get_table_view` was listed twice). The documentation package was overhauled in 12 actions — a new `wip://ponifs` resource, 11 corrected slash commands including `/resume` for compaction recovery, and AI-Assisted-Development.md rewritten from 1,270 to 232 lines. The security audit is fully complete — all 22 findings addressed. `create-app-project.sh` reduces app setup from 40 manual steps to one command. `WIP_API_KEY_FILE` eliminates the key rotation friction that hit three times this week. CLAUDE.md was split into three files for three audiences — Peter caught the gap that everyone else missed. Constellation-Claude added Viseca and DKB parsers (1,967 documents across 5 parsers), caught Peter's data selection error twice, and proved the process works even when the human rushes. Four and a half hours of Sunday, from 12:30 to 17:00. Ready for deployment testing and the fresh-directory process test.*
 
 *See [Day 7: The Checklist](WIP_Journey_Day7.md) for the previous day.*
