@@ -122,6 +122,103 @@ Where R=reference(10), A=amount, D=valuta date, S=saldo.
 
 ---
 
+## Viseca CSV (credit card export)
+
+- **Source:** Viseca One app, transaction export
+- **File type:** CSV (`,`-delimited, UTF-8, with header row)
+- **Parser:** `src/lib/parsers/viseca-csv.ts`
+- **Detection:** Content-based -- first line starts with `TransactionId,CardId,`
+
+### Column mapping
+
+| CSV Column | WIP Field | Transformation |
+|-----------|-----------|----------------|
+| TransactionId | `source_reference` | Direct (identity field) |
+| CardId | `card_number` | Direct (masked by Viseca) |
+| Date | `transaction_datetime` | Space replaced with `T` |
+| ValutaDate | `booking_date`, `value_date` | Date portion extracted (YYYY-MM-DD) |
+| Amount | `amount` | Negated (CC purchases = expenditures) |
+| Currency | `currency` | Direct (CHF) |
+| OriginalAmount | `original_amount` | Negated; only set if differs from billing currency |
+| OriginalCurrency | `original_currency` | Only set if differs from billing currency |
+| MerchantName | `counterparty_name` | Direct |
+| MerchantPlace | `merchant_city` | Direct |
+| MerchantCountry | `merchant_country` | ISO 3166-1 alpha-3 converted to alpha-2 (CHE→CH, DEU→DE, etc.) |
+| Details | `description` | Direct |
+| Exchange Rate | `exchange_rate`, `exchange_target_currency` | Only set if != 1.0 |
+
+### Transaction type
+
+All Viseca transactions map to `CREDIT_CARD_PURCHASE`. The Viseca `Type` field (e.g., "fee") is not meaningful for categorization.
+
+### Account matching
+
+Viseca accounts use synthetic IBANs: `VISECA-{CardId}`. Auto-matching looks for this pattern in the IBAN field of FIN_ACCOUNT documents.
+
+### File structure
+
+No metadata header. First row is the column header. All subsequent rows are transactions. Files are named `Transactions_{UUID}.csv` by the Viseca One app.
+
+---
+
+## DKB CSV (Umsatzliste)
+
+- **Source:** DKB (Deutsche Kreditbank) online banking, "Umsatzliste" export
+- **File type:** CSV (`;`-delimited, UTF-8, all fields double-quoted)
+- **Parser:** `src/lib/parsers/dkb-csv.ts`
+- **Detection:** Content-based -- first line contains `Girokonto` + header row contains `Buchungsdatum`
+
+### Column mapping
+
+| CSV Column | Index | WIP Field | Transformation |
+|-----------|-------|-----------|----------------|
+| Buchungsdatum | 0 | `booking_date` | DD.MM.YY → YYYY-MM-DD |
+| Wertstellung | 1 | `value_date` | DD.MM.YY → YYYY-MM-DD |
+| Status | 2 | -- | Not mapped (always "Gebucht") |
+| Zahlungspflichtige*r | 3 | `counterparty_name` (if incoming) | Payer for Eingang transactions |
+| Zahlungsempfänger*in | 4 | `counterparty_name` (if outgoing) | Payee for Ausgang transactions |
+| Verwendungszweck | 5 | `description` | Direct |
+| Umsatztyp | 6 | -- | Used for transaction type inference + counterparty logic |
+| IBAN | 7 | `counterparty_iban` | Direct |
+| Betrag (€) | 8 | `amount` | German format: dot=thousands, comma=decimal |
+| Gläubiger-ID | 9 | -- | Stored in `raw_details` |
+| Mandatsreferenz | 10 | `reference_number` | Direct (if present) |
+| Kundenreferenz | 11 | `source_reference` | Prefixed with `DKB-`; fallback: `DKB-{date}-{amount}-{index}` |
+
+### Transaction type inference
+
+From `Verwendungszweck` (purpose) and `Umsatztyp`:
+- "VISA Debitkartenumsatz" → `DEBIT_CARD`
+- Lastschrift / has Gläubiger-ID → `BANK_TRANSFER_OUT`
+- "Dauerauftrag" → `STANDING_ORDER`
+- "Abrechnung" + DKB → `FEE`
+- "Zinsen" / "Zins" → `BANK_TRANSFER_IN`
+- Umsatztyp "Eingang" → `BANK_TRANSFER_IN`
+- Umsatztyp "Ausgang" → `BANK_TRANSFER_OUT`
+- Fallback: `OTHER`
+
+### File header
+
+Lines before the column header contain metadata:
+- Line 1: `"Girokonto";"DE67..."` -- account type + IBAN
+- Line 2 (optional): `"Zeitraum:";"01.01.2025 - 31.12.2025"` -- export period
+- Line 3: `"Kontostand vom DD.MM.YYYY:";"1.255,34 €"` -- balance
+- Line 4: empty
+
+### Source reference generation
+
+DKB does not provide unique transaction IDs. The parser generates them:
+1. If `Kundenreferenz` is present: `DKB-{Kundenreferenz}`
+2. Fallback: `DKB-{bookingDate}-{amount}-{rowIndex}`
+
+This means re-importing the same file produces the same source references (idempotent via WIP's identity dedup).
+
+### Number format
+
+German: dot for thousands separator, comma for decimal. `-1.255,34` → -1255.34
+
+---
+
 ## Employer Payslip PDF
 
 - **Source:** Employer HR system, monthly payslip PDF

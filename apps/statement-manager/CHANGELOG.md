@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-03-22 -- Credit card & DKB parsers, account auto-create
+
+- Added: Viseca credit card CSV parser (`viseca-csv.ts`) with merchant location, multi-currency, exchange rate support
+- Added: DKB German bank CSV parser (`dkb-csv.ts`) with German date/number format handling
+- Added: Auto-detect CSV format by header content (Viseca comma vs DKB semicolon vs UBS semicolon)
+- Added: "Create new account" option in import flow with editable form pre-filled from parser extraction
+- Added: CREDIT_CARD_PURCHASE to transaction type filter dropdown on TransactionsPage
+- Added: CREDIT_CARD_STATEMENT term to IMPORT_DOCUMENT_TYPE terminology
+- Changed: CSV detection is now content-based (was filename-only, assumed all CSVs were UBS)
+- Changed: TransactionPreview now supports 3 parser types (ubs-csv, yuh-pdf, dkb-csv) via lookup maps
+- Changed: AccountSelector now accepts editable `hint` + `onHintChange` props for inline account creation
+
+## 2026-03-22 -- FIN_TRANSACTION v2 data model
+
+- Added: 5 new optional fields to FIN_TRANSACTION template: merchant_city, merchant_country (term: COUNTRY), original_amount, original_currency (term: FIN_CURRENCY), transaction_datetime
+- Added: CREDIT_CARD_PURCHASE term to FIN_TRANSACTION_TYPE terminology
+- Changed: Template description updated to mention credit card sources
+
 ## 2026-03-14 -- Parser tests and documentation
 
 - Added: Integration tests for Yuh PDF and employer payslip parsers using pdfjs-dist legacy build against real files

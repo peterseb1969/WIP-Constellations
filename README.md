@@ -56,6 +56,7 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Field Report: Day 5](WIP_Journey_Day5.md) | The reporter discovers its own blind spots |
 | [Field Report: Day 6](WIP_Journey_Day6.md) | Hardware investigation, module audit, Receipt Scanner in 2h15m |
 | [Field Report: Day 7](WIP_Journey_Day7.md) | The checklist — publishing focus, quality audit, CI pipeline |
+| [Field Report: Day 8](WIP_Journey_Day8.md) | The process — MCP expansion (69 tools), doc overhaul, Viseca/DKB parsers |
 
 ## Prerequisites
 

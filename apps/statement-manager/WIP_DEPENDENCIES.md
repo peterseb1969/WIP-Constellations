@@ -8,10 +8,10 @@ This document lists all WIP terminologies, templates, and cross-references used 
 |------|------|----------|------------|
 | FIN_CURRENCY | Currencies | Account currency, transaction currency, payslip currency | This app |
 | FIN_ACCOUNT_TYPE | Account Types | Account type dropdown (CHECKING, SAVINGS, CREDIT_CARD, SHARE_DEPOT, EMPLOYER) | This app |
-| FIN_TRANSACTION_TYPE | Transaction Types | Transaction categorization (DEBIT_CARD, BANK_TRANSFER_IN, BANK_TRANSFER_OUT, etc.) | This app |
+| FIN_TRANSACTION_TYPE | Transaction Types | Transaction categorization (DEBIT_CARD, BANK_TRANSFER_IN, BANK_TRANSFER_OUT, CREDIT_CARD_PURCHASE, etc.) | This app |
 | FIN_TRANSACTION_CATEGORY | Transaction Categories | User-assigned categories (future use) | This app |
 | FIN_PAYSLIP_LINE_CATEGORY | Payslip Line Categories | Payslip line categorization (BASE_SALARY, ALLOWANCE, SOCIAL_CONTRIBUTION, etc.) | This app |
-| IMPORT_DOCUMENT_TYPE | Import Document Types | Import record type (BANK_STATEMENT, PAYSLIP) | This app |
+| IMPORT_DOCUMENT_TYPE | Import Document Types | Import record type (BANK_STATEMENT, CREDIT_CARD_STATEMENT, PAYSLIP) | This app |
 
 ## Templates
 
@@ -24,7 +24,7 @@ This document lists all WIP terminologies, templates, and cross-references used 
 ### FIN_TRANSACTION
 - **Purpose:** Individual financial transactions from bank statements
 - **Identity fields:** `account` + `source_reference`
-- **Fields this app reads/writes:** account (ref: FIN_ACCOUNT), source_reference, booking_date, value_date, currency (term: FIN_CURRENCY), amount, balance_after, transaction_type (term: FIN_TRANSACTION_TYPE), description, counterparty_name, counterparty_address, counterparty_iban, reference_number, card_number, exchange_rate, exchange_target_currency, raw_details, category (term: FIN_TRANSACTION_CATEGORY)
+- **Fields this app reads/writes:** account (ref: FIN_ACCOUNT), source_reference, booking_date, value_date, currency (term: FIN_CURRENCY), amount, balance_after, transaction_type (term: FIN_TRANSACTION_TYPE), description, counterparty_name, counterparty_address, counterparty_iban, reference_number, card_number, exchange_rate, exchange_target_currency, raw_details, category (term: FIN_TRANSACTION_CATEGORY), merchant_city, merchant_country (term: COUNTRY), original_amount, original_currency (term: FIN_CURRENCY), transaction_datetime
 - **Used by:** TransactionsPage (query + filter), DashboardPage (recent list + count), ImportPage (bulk create)
 
 ### FIN_PAYSLIP
@@ -60,9 +60,15 @@ All terminologies and templates are defined in `data-model/`:
 - `data-model/terminologies/` -- 6 terminology JSON files
 - `data-model/templates/` -- 5 template JSON files (numbered for creation order)
 
+## External terminology references
+
+- **COUNTRY** (seed namespace) — referenced by FIN_TRANSACTION.merchant_country for Viseca credit card imports. Uses alpha-2 codes (CH, DE, etc.), matched via alias from Viseca's alpha-3 codes (CHE, DEU).
+
 ## External data sources
 
 No external APIs. All data enters via file import:
-- UBS e-banking CSV exports
-- Yuh account statement PDFs
+- UBS e-banking CSV exports (CH, semicolon-delimited)
+- Yuh account statement PDFs (CH)
+- Viseca credit card CSV exports (CH, comma-delimited)
+- DKB Umsatzliste CSV exports (DE, semicolon-delimited, German number format)
 - Employer payslip PDFs
