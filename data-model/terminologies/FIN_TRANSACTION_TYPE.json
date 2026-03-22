@@ -15,6 +15,7 @@
     { "value": "FEE", "label": "Bank Fee / Service Charge", "aliases": ["Saldo Dienstleistungspreisabschluss"] },
     { "value": "OTHER", "label": "Other" },
     { "value": "STANDING_ORDER", "label": "Standing Order", "aliases": ["Dauerauftrag"] },
-    { "value": "TWINT", "label": "TWINT Mobile Payment", "aliases": ["UBS TWINT"] }
+    { "value": "TWINT", "label": "TWINT Mobile Payment", "aliases": ["UBS TWINT"] },
+    { "value": "CREDIT_CARD_PURCHASE", "label": "Credit Card Purchase", "description": "Purchase made with a credit card (Viseca, Mastercard, etc.)" }
   ]
 }

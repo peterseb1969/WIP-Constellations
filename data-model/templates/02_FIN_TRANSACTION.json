@@ -1,7 +1,7 @@
 {
   "value": "FIN_TRANSACTION",
   "label": "Financial Transaction",
-  "description": "A normalized financial transaction from any bank source (UBS CSV, Yuh PDF, etc.)",
+  "description": "A normalized financial transaction from any source: bank statements (UBS CSV, Yuh PDF, Migros Bank CSV) or credit card exports (Viseca CSV)",
   "identity_fields": ["account", "source_reference"],
   "metadata": {
     "domain": "finance",
@@ -26,6 +26,11 @@
     { "name": "reference_number", "label": "Payment Reference (QRR etc.)", "type": "string", "mandatory": false },
     { "name": "card_number", "label": "Card Number (masked)", "type": "string", "mandatory": false },
     { "name": "exchange_rate", "label": "Exchange Rate", "type": "number", "mandatory": false },
-    { "name": "exchange_target_currency", "label": "Exchange Target Currency", "type": "term", "mandatory": false, "terminology_ref": "FIN_CURRENCY" }
+    { "name": "exchange_target_currency", "label": "Exchange Target Currency", "type": "term", "mandatory": false, "terminology_ref": "FIN_CURRENCY" },
+    { "name": "merchant_city", "label": "Merchant City", "type": "string", "mandatory": false },
+    { "name": "merchant_country", "label": "Merchant Country", "type": "term", "mandatory": false, "terminology_ref": "COUNTRY" },
+    { "name": "original_amount", "label": "Original Amount", "type": "number", "mandatory": false },
+    { "name": "original_currency", "label": "Original Currency", "type": "term", "mandatory": false, "terminology_ref": "FIN_CURRENCY" },
+    { "name": "transaction_datetime", "label": "Transaction Date/Time", "type": "datetime", "mandatory": false }
   ]
 }
