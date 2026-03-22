@@ -1142,4 +1142,36 @@ The most important document is the one closest to the reader. CLAUDE.md is read 
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 038, 039, etc.) and include date, category, phase, and severity.*
+## Entry 038 — 2026-03-22
+
+**Category:** Fresh-directory validation — D&D SRD experiment
+**Phase:** Full cycle: Phase 1 through bulk load (Day 8)
+**Severity:** Low (validation of process)
+
+### What happened
+
+A fresh Claude, using only the updated documentation package (4 MCP resources, 11 slash commands, PoNIFs doc, client library READMEs), independently designed 21 terminologies and 20 templates for a D&D backend in 5 minutes 29 seconds. It discovered and correctly used 12 WIP features without being told they exist. Phase 3 implementation: 7 minutes 33 seconds, zero PoNIF mistakes, one parsing error across 261 entities. Bulk load: 1,129 documents from a 412-page German PDF across multiple compaction cycles using the agent fire-and-forget pattern.
+
+### Lesson
+
+The documentation package works. The improvement from Statement Manager v1 (heavy tutoring, many mistakes, 6.5 hours) to D&D (zero tutoring, zero PoNIF mistakes, 13 minutes for Phases 1-3) validates every investment in documentation quality: the MCP resource rewrite, the slash command corrections, the `wip://ponifs` resource, the AI-Assisted-Development.md condensation. Each improvement compounds.
+
+---
+
+## Entry 039 — 2026-03-22
+
+**Category:** Tooling gap — field projection and search indexing
+**Phase:** D&D Q&A session (Day 8)
+**Severity:** High (limits analytical capability)
+
+### What happened
+
+Querying 245 monsters via MCP returned full 40-field documents (480K+ characters per page), exceeding context limits. The Claude adapted by dumping results to disk and analyzing with bash/python, but this shouldn't be necessary. Additionally, `search("Dagger")` returned zero despite 38 DND_WEAPON documents existing — a full-text search indexing gap.
+
+### Lesson
+
+WIP's query tools were designed for CRUD, not analytics. Two additions would transform capability: (1) field projection on `query_by_template` (return only specified fields), and (2) investigation of why full-text search misses existing documents. The file-dump workaround works but is a sign of a missing feature, not a valid pattern.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 040, 041, etc.) and include date, category, phase, and severity.*
