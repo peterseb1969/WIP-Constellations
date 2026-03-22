@@ -12,6 +12,8 @@ import type { Document, CreateDocumentRequest } from '@wip/client'
 import { cn, formatDate, formatCurrency } from '@/lib/utils'
 import { parseUbsCsv, toWipTransaction as ubsToWip } from '@/lib/parsers/ubs-csv'
 import { parseYuhPdf, toWipTransaction as yuhToWip } from '@/lib/parsers/yuh-pdf'
+import { isVisecaCsv, parseVisecaCsv, toWipTransaction as visecaToWip } from '@/lib/parsers/viseca-csv'
+import { isDkbCsv, parseDkbCsv, toWipTransaction as dkbToWip } from '@/lib/parsers/dkb-csv'
 import { extractPdfText } from '@/lib/parsers/pdf-extract'
 import {
   parseEmployerPayslip,
@@ -20,6 +22,8 @@ import {
 } from '@/lib/parsers/employer-payslip'
 import type { ParsedUbsCsv } from '@/lib/parsers/ubs-csv'
 import type { ParsedYuhPdf } from '@/lib/parsers/yuh-pdf'
+import type { ParsedVisecaCsv } from '@/lib/parsers/viseca-csv'
+import type { ParsedDkbCsv } from '@/lib/parsers/dkb-csv'
 import type { ParsedEmployerPayslip } from '@/lib/parsers/employer-payslip'
 
 // ---------------------------------------------------------------------------
@@ -28,11 +32,13 @@ import type { ParsedEmployerPayslip } from '@/lib/parsers/employer-payslip'
 
 type ParsedResult =
   | { type: 'ubs-csv'; data: ParsedUbsCsv }
+  | { type: 'viseca-csv'; data: ParsedVisecaCsv }
+  | { type: 'dkb-csv'; data: ParsedDkbCsv }
   | { type: 'yuh-pdf'; data: ParsedYuhPdf }
   | { type: 'employer-payslip'; data: ParsedEmployerPayslip }
 
-function detectParserByFilename(filename: string): 'ubs-csv' | 'pdf' | null {
-  if (filename.toLowerCase().endsWith('.csv')) return 'ubs-csv'
+function detectParserByFilename(filename: string): 'csv' | 'pdf' | null {
+  if (filename.toLowerCase().endsWith('.csv')) return 'csv'
   if (filename.toLowerCase().endsWith('.pdf')) return 'pdf'
   return null
 }
@@ -134,6 +140,27 @@ function ImportResult({ result }: { result: { created: number; skipped: number; 
   )
 }
 
+/** Hint from a parser about what account to create if none matches */
+interface AccountHint {
+  iban: string
+  institution: string
+  accountType: string
+  currency: string
+  description?: string
+}
+
+const CREATE_NEW = '__create_new__'
+
+const ACCOUNT_TYPE_OPTIONS = [
+  { value: 'CHECKING', label: 'Checking Account' },
+  { value: 'CREDIT_CARD', label: 'Credit Card' },
+  { value: 'SAVINGS', label: 'Savings Account' },
+  { value: 'SHARE_DEPOT', label: 'Share Depot' },
+  { value: 'EMPLOYER', label: 'Employer' },
+]
+
+const inputCls = 'block w-full rounded-md border border-gray-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
+
 function AccountSelector({
   accounts,
   selectedId,
@@ -141,6 +168,8 @@ function AccountSelector({
   matchLabel,
   onChange,
   label = 'Link to Account',
+  hint,
+  onHintChange,
 }: {
   accounts: Document[]
   selectedId: string
@@ -148,14 +177,17 @@ function AccountSelector({
   matchLabel: string
   onChange: (id: string) => void
   label?: string
+  hint?: AccountHint
+  onHintChange?: (hint: AccountHint) => void
 }) {
   const effectiveId = selectedId || matchedId
+  const isCreateNew = effectiveId === CREATE_NEW
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium mb-1">
         {label} <span className="text-danger">*</span>
       </label>
-      {matchedId && !selectedId && (
+      {matchedId && !selectedId && matchedId !== CREATE_NEW && (
         <p className="text-xs text-success mb-1">Auto-matched: {matchLabel}</p>
       )}
       <select
@@ -169,7 +201,56 @@ function AccountSelector({
             {a.data.institution as string} — {a.data.iban as string} ({a.data.primary_currency as string})
           </option>
         ))}
+        {hint && <option value={CREATE_NEW}>+ Create new account</option>}
       </select>
+      {isCreateNew && hint && onHintChange && (
+        <div className="mt-2 p-3 bg-primary/5 border border-primary/20 rounded-md max-w-md">
+          <p className="text-xs font-medium text-primary mb-2">New account details (edit as needed):</p>
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm items-center">
+            <label className="text-xs text-text-muted">Institution</label>
+            <input
+              className={inputCls}
+              value={hint.institution}
+              onChange={(e) => onHintChange({ ...hint, institution: e.target.value })}
+            />
+            <label className="text-xs text-text-muted">Type</label>
+            <select
+              className={inputCls}
+              value={hint.accountType}
+              onChange={(e) => onHintChange({ ...hint, accountType: e.target.value })}
+            >
+              {ACCOUNT_TYPE_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+            <label className="text-xs text-text-muted">IBAN / ID <span className="text-danger">*</span></label>
+            <input
+              className={cn(inputCls, !hint.iban && 'border-danger/50 bg-danger/5')}
+              value={hint.iban}
+              placeholder="Required — e.g. CH93 0076 2011 6238 5295 7"
+              onChange={(e) => onHintChange({ ...hint, iban: e.target.value })}
+            />
+            <label className="text-xs text-text-muted">Currency</label>
+            <input
+              className={inputCls}
+              value={hint.currency}
+              onChange={(e) => onHintChange({ ...hint, currency: e.target.value })}
+            />
+            <label className="text-xs text-text-muted">Description</label>
+            <input
+              className={inputCls}
+              value={hint.description ?? ''}
+              placeholder="Optional nickname"
+              onChange={(e) => onHintChange({ ...hint, description: e.target.value })}
+            />
+          </div>
+          {!hint.iban ? (
+            <p className="text-xs text-danger mt-2">IBAN / ID is required to create the account.</p>
+          ) : (
+            <p className="text-xs text-text-muted mt-2">Account will be created automatically when you hit Import.</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -180,28 +261,44 @@ function AccountSelector({
 
 interface TransactionPreviewProps {
   file: File
-  parserType: 'ubs-csv' | 'yuh-pdf'
+  parserType: 'ubs-csv' | 'yuh-pdf' | 'dkb-csv'
   wipTransactions: Record<string, unknown>[]
   skippedCount: number
   period: { from: string; to: string }
   iban: string
   accounts: Document[]
+  accountHint?: AccountHint
   onCancel: () => void
   onImported: () => void
 }
 
+const PARSER_LABELS: Record<string, string> = {
+  'ubs-csv': 'UBS Bank Statement',
+  'yuh-pdf': 'Yuh Account Statement',
+  'dkb-csv': 'DKB Bank Statement',
+}
+
+const PARSER_CODES: Record<string, string> = {
+  'ubs-csv': 'ubs_csv',
+  'yuh-pdf': 'yuh_pdf',
+  'dkb-csv': 'dkb_csv',
+}
+
 function TransactionPreview({
   file, parserType, wipTransactions, skippedCount, period, iban,
-  accounts, onCancel, onImported,
+  accounts, accountHint: initialHint, onCancel, onImported,
 }: TransactionPreviewProps) {
   const [selectedAccountId, setSelectedAccountId] = useState<string>('')
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null)
+  const [editedHint, setEditedHint] = useState<AccountHint | undefined>(initialHint)
 
   const { data: txTemplate } = useTemplateByValue('FIN_TRANSACTION')
   const { data: importTemplate } = useTemplateByValue('FIN_IMPORT')
+  const { data: accountTemplate } = useTemplateByValue('FIN_ACCOUNT')
   const createDocs = useCreateDocuments()
   const createImport = useCreateDocument()
+  const createAccount = useCreateDocument()
   const uploadFile = useUploadFile()
 
   const matchingAccount = accounts.find((a) => {
@@ -211,16 +308,35 @@ function TransactionPreview({
   const effectiveAccountId = selectedAccountId || matchingAccount?.document_id || ''
 
   async function handleImport() {
-    if (!txTemplate?.template_id || !importTemplate?.template_id || !effectiveAccountId) return
+    const resolvedId = effectiveAccountId === CREATE_NEW ? null : effectiveAccountId
+    if (!txTemplate?.template_id || !importTemplate?.template_id || (!resolvedId && !editedHint)) return
     setImporting(true)
     setResult(null)
 
     try {
+      // 0. Auto-create account if needed
+      let accountId = resolvedId
+      if (!accountId && editedHint && accountTemplate?.template_id) {
+        const acctResult = await createAccount.mutateAsync({
+          template_id: accountTemplate.template_id,
+          template_version: accountTemplate.version,
+          data: {
+            iban: editedHint.iban,
+            institution: editedHint.institution,
+            account_type: editedHint.accountType,
+            primary_currency: editedHint.currency,
+            description: editedHint.description,
+          },
+        })
+        accountId = acctResult.document_id as string
+      }
+      if (!accountId) throw new Error('No account selected or created')
+
       // 1. Create transactions in batches
       const docs: CreateDocumentRequest[] = wipTransactions.map((data) => ({
         template_id: txTemplate.template_id,
         template_version: txTemplate.version,
-        data: { ...data, account: effectiveAccountId },
+        data: { ...data, account: accountId },
       }))
 
       let totalCreated = 0
@@ -257,8 +373,8 @@ function TransactionPreview({
             file: fileEntity.file_id,
             import_date: new Date().toISOString(),
             document_type: 'BANK_STATEMENT',
-            parser: parserType === 'ubs-csv' ? 'ubs_csv' : 'yuh_pdf',
-            account: effectiveAccountId,
+            parser: PARSER_CODES[parserType] ?? parserType,
+            account: accountId,
             transactions_created: totalCreated,
             period_from: period.from,
             period_to: period.to,
@@ -281,7 +397,7 @@ function TransactionPreview({
   return (
     <div className="bg-surface border border-gray-200 rounded-lg p-6 mb-6">
       <h3 className="font-semibold text-lg mb-4">
-        Import Preview — {parserType === 'ubs-csv' ? 'UBS Bank Statement' : 'Yuh Account Statement'}
+        Import Preview — {PARSER_LABELS[parserType] ?? parserType}
       </h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -309,6 +425,8 @@ function TransactionPreview({
         matchedId={matchingAccount?.document_id ?? ''}
         matchLabel={matchingAccount?.data.institution as string ?? ''}
         onChange={setSelectedAccountId}
+        hint={editedHint}
+        onHintChange={setEditedHint}
       />
 
       {/* Transaction preview table */}
@@ -356,7 +474,7 @@ function TransactionPreview({
         </button>
         <button
           onClick={handleImport}
-          disabled={importing || !effectiveAccountId || !txTemplate || !importTemplate || !!result}
+          disabled={importing || !effectiveAccountId || (effectiveAccountId === CREATE_NEW && !editedHint?.iban) || !txTemplate || !importTemplate || !!result}
           className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
           {importing ? (
@@ -368,6 +486,235 @@ function TransactionPreview({
             <>
               <ArrowRight size={16} />
               Import {wipTransactions.length} Transactions
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Viseca credit card import preview
+// ---------------------------------------------------------------------------
+
+interface VisecaPreviewProps {
+  file: File
+  parsed: ParsedVisecaCsv
+  wipTransactions: Record<string, unknown>[]
+  accounts: Document[]
+  onCancel: () => void
+  onImported: () => void
+}
+
+function VisecaPreview({
+  file, parsed, wipTransactions, accounts, onCancel, onImported,
+}: VisecaPreviewProps) {
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('')
+  const [importing, setImporting] = useState(false)
+  const [result, setResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null)
+  const [editedHint, setEditedHint] = useState<AccountHint>({
+    iban: `VISECA-${parsed.cardId}`,
+    institution: 'Viseca',
+    accountType: 'CREDIT_CARD',
+    currency: parsed.currency,
+    description: `Credit Card ${parsed.cardId}`,
+  })
+
+  const { data: txTemplate } = useTemplateByValue('FIN_TRANSACTION')
+  const { data: importTemplate } = useTemplateByValue('FIN_IMPORT')
+  const { data: accountTemplate } = useTemplateByValue('FIN_ACCOUNT')
+  const createDocs = useCreateDocuments()
+  const createImport = useCreateDocument()
+  const createAccount = useCreateDocument()
+  const uploadFile = useUploadFile()
+
+  // Match by CardId in the synthetic IBAN (VISECA-{CardId} pattern)
+  const matchingAccount = accounts.find((a) => {
+    const acctIban = a.data.iban as string
+    return acctIban === `VISECA-${parsed.cardId}`
+  })
+  const effectiveAccountId = selectedAccountId || matchingAccount?.document_id || ''
+
+  async function handleImport() {
+    const resolvedId = effectiveAccountId === CREATE_NEW ? null : effectiveAccountId
+    if (!txTemplate?.template_id || !importTemplate?.template_id || (!resolvedId && !editedHint)) return
+    setImporting(true)
+    setResult(null)
+
+    try {
+      // 0. Auto-create account if needed
+      let accountId = resolvedId
+      if (!accountId && accountTemplate?.template_id) {
+        const acctResult = await createAccount.mutateAsync({
+          template_id: accountTemplate.template_id,
+          template_version: accountTemplate.version,
+          data: {
+            iban: editedHint.iban,
+            institution: editedHint.institution,
+            account_type: editedHint.accountType,
+            primary_currency: editedHint.currency,
+            description: editedHint.description,
+          },
+        })
+        accountId = acctResult.document_id as string
+      }
+      if (!accountId) throw new Error('No account selected or created')
+
+      const docs: CreateDocumentRequest[] = wipTransactions.map((data) => ({
+        template_id: txTemplate.template_id,
+        template_version: txTemplate.version,
+        data: { ...data, account: accountId },
+      }))
+
+      let totalCreated = 0
+      const errors: string[] = []
+      const batchSize = 50
+
+      for (let i = 0; i < docs.length; i += batchSize) {
+        const batch = docs.slice(i, i + batchSize)
+        const res = await createDocs.mutateAsync(batch)
+        totalCreated += res.results.filter((r) => r.status === 'created' || r.status === 'updated').length
+        res.results
+          .filter((r) => r.status === 'error')
+          .forEach((r) => {
+            const msg = r.error ?? 'Unknown error'
+            if (msg.includes('E11000') && msg.includes('version')) {
+              totalCreated++
+            } else {
+              errors.push(msg)
+            }
+          })
+      }
+
+      const fileEntity = await uploadFile.mutateAsync({ file, filename: file.name })
+
+      try {
+        await createImport.mutateAsync({
+          template_id: importTemplate.template_id,
+          template_version: importTemplate.version,
+          data: {
+            filename: file.name,
+            file: fileEntity.file_id,
+            import_date: new Date().toISOString(),
+            document_type: 'CREDIT_CARD_STATEMENT',
+            parser: 'viseca_csv',
+            account: accountId,
+            transactions_created: totalCreated,
+            period_from: parsed.period.from,
+            period_to: parsed.period.to,
+            status: errors.length === 0 ? 'success' : totalCreated > 0 ? 'partial' : 'failed',
+          },
+        })
+      } catch (importErr) {
+        errors.push(`Import record: ${importErr instanceof Error ? importErr.message : 'Failed to save import record'}`)
+      }
+
+      setResult({ created: totalCreated, skipped: 0, errors })
+      if (errors.length === 0) setTimeout(onImported, 2000)
+    } catch (err) {
+      setResult({ created: 0, skipped: 0, errors: [err instanceof Error ? err.message : 'Import failed'] })
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  return (
+    <div className="bg-surface border border-gray-200 rounded-lg p-6 mb-6">
+      <h3 className="font-semibold text-lg mb-4">
+        Import Preview — Viseca Credit Card Statement
+      </h3>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div>
+          <p className="text-xs text-text-muted">File</p>
+          <p className="text-sm font-medium truncate">{file.name}</p>
+        </div>
+        <div>
+          <p className="text-xs text-text-muted">Card ID</p>
+          <p className="text-sm font-mono">{parsed.cardId || '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-text-muted">Period</p>
+          <p className="text-sm">{parsed.period.from} → {parsed.period.to}</p>
+        </div>
+        <div>
+          <p className="text-xs text-text-muted">Transactions</p>
+          <p className="text-sm">{wipTransactions.length} total</p>
+        </div>
+      </div>
+
+      <AccountSelector
+        accounts={accounts}
+        selectedId={selectedAccountId}
+        matchedId={matchingAccount?.document_id ?? ''}
+        matchLabel={matchingAccount ? `${matchingAccount.data.institution as string} (Credit Card)` : ''}
+        onChange={setSelectedAccountId}
+        label="Link to Credit Card Account"
+        hint={editedHint}
+        onHintChange={setEditedHint}
+      />
+
+      <div className="border border-gray-200 rounded-md overflow-hidden mb-6">
+        <div className="overflow-x-auto max-h-64 overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium text-text-muted">Date</th>
+                <th className="text-left px-3 py-2 font-medium text-text-muted">Merchant</th>
+                <th className="text-left px-3 py-2 font-medium text-text-muted">Location</th>
+                <th className="text-right px-3 py-2 font-medium text-text-muted">Amount</th>
+                <th className="text-right px-3 py-2 font-medium text-text-muted">Original</th>
+              </tr>
+            </thead>
+            <tbody>
+              {wipTransactions.slice(0, 20).map((tx, i) => (
+                <tr key={i} className="border-t border-gray-100">
+                  <td className="px-3 py-1.5 whitespace-nowrap">{tx.booking_date as string}</td>
+                  <td className="px-3 py-1.5 truncate max-w-48">{tx.counterparty_name as string}</td>
+                  <td className="px-3 py-1.5 truncate max-w-32">
+                    {[tx.merchant_city, tx.merchant_country].filter(Boolean).join(', ') || '—'}
+                  </td>
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                    {formatCurrency(tx.amount as number, tx.currency as string)}
+                  </td>
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap text-text-muted">
+                    {tx.original_currency && tx.original_currency !== tx.currency
+                      ? formatCurrency(tx.original_amount as number, tx.original_currency as string)
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {wipTransactions.length > 20 && (
+          <p className="text-xs text-text-muted text-center py-2 bg-gray-50 border-t border-gray-200">
+            Showing 20 of {wipTransactions.length} transactions
+          </p>
+        )}
+      </div>
+
+      {result && <ImportResult result={result} />}
+
+      <div className="flex items-center justify-end gap-3">
+        <button onClick={onCancel} disabled={importing} className="px-4 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50">
+          Cancel
+        </button>
+        <button
+          onClick={handleImport}
+          disabled={importing || !effectiveAccountId || (effectiveAccountId === CREATE_NEW && !editedHint?.iban) || !txTemplate || !importTemplate || !!result}
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
+        >
+          {importing ? (
+            <>
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              Importing...
+            </>
+          ) : (
+            <>
+              <ArrowRight size={16} />
+              Import {wipTransactions.length} Credit Card Transactions
             </>
           )}
         </button>
@@ -393,12 +740,23 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null)
 
+  const employerName = parsed.header.company || 'Employer'
+  const [editedHint, setEditedHint] = useState<AccountHint>({
+    iban: `EMPLOYER-${employerName.toUpperCase().replace(/\s+/g, '-')}`,
+    institution: employerName,
+    accountType: 'EMPLOYER',
+    currency: parsed.summary.currency || 'CHF',
+    description: `Payslip source — ${employerName}`,
+  })
+
   const { data: payslipTemplate } = useTemplateByValue('FIN_PAYSLIP')
   const { data: lineTemplate } = useTemplateByValue('FIN_PAYSLIP_LINE')
   const { data: importTemplate } = useTemplateByValue('FIN_IMPORT')
+  const { data: accountTemplate } = useTemplateByValue('FIN_ACCOUNT')
   const createDoc = useCreateDocument()
   const createDocs = useCreateDocuments()
   const createImport = useCreateDocument()
+  const createAccountDoc = useCreateDocument()
   const uploadFile = useUploadFile()
 
   // Match employer account by type
@@ -412,13 +770,32 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
   const employerAccounts = accounts.filter((a) => a.data.account_type === 'EMPLOYER')
 
   async function handleImport() {
-    if (!payslipTemplate?.template_id || !lineTemplate?.template_id || !importTemplate?.template_id || !effectiveAccountId) return
+    const resolvedId = effectiveAccountId === CREATE_NEW ? null : effectiveAccountId
+    if (!payslipTemplate?.template_id || !lineTemplate?.template_id || !importTemplate?.template_id || (!resolvedId && !editedHint)) return
     setImporting(true)
     setResult(null)
 
     try {
+      // 0. Auto-create account if needed
+      let accountId = resolvedId
+      if (!accountId && accountTemplate?.template_id) {
+        const acctResult = await createAccountDoc.mutateAsync({
+          template_id: accountTemplate.template_id,
+          template_version: accountTemplate.version,
+          data: {
+            iban: editedHint.iban,
+            institution: editedHint.institution,
+            account_type: editedHint.accountType,
+            primary_currency: editedHint.currency,
+            description: editedHint.description,
+          },
+        })
+        accountId = acctResult.document_id as string
+      }
+      if (!accountId) throw new Error('No account selected or created')
+
       // 1. Create payslip document
-      const payslipData = toWipPayslip(parsed, effectiveAccountId)
+      const payslipData = toWipPayslip(parsed, accountId)
       const payslipResult = await createDoc.mutateAsync({
         template_id: payslipTemplate.template_id,
         template_version: payslipTemplate.version,
@@ -464,7 +841,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
           import_date: new Date().toISOString(),
           document_type: 'PAYSLIP',
           parser: 'employer_payslip',
-          account: effectiveAccountId,
+          account: accountId,
           transactions_created: linesCreated + 1, // payslip + lines
           period_from: parsed.header.payDate,
           period_to: parsed.header.payDate,
@@ -528,6 +905,8 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
         matchLabel={matchingEmployer?.data.institution as string ?? ''}
         onChange={setSelectedAccountId}
         label="Employer Account"
+        hint={editedHint}
+        onHintChange={setEditedHint}
       />
 
       {/* Line items */}
@@ -572,7 +951,7 @@ function PayslipPreview({ file, parsed, accounts, onCancel, onImported }: Paysli
         </button>
         <button
           onClick={handleImport}
-          disabled={importing || !effectiveAccountId || !payslipTemplate || !lineTemplate || !importTemplate || !!result}
+          disabled={importing || !effectiveAccountId || (effectiveAccountId === CREATE_NEW && !editedHint?.iban) || !payslipTemplate || !lineTemplate || !importTemplate || !!result}
           className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
         >
           {importing ? (
@@ -629,13 +1008,21 @@ export function ImportPage() {
       return
     }
 
-    if (fileType === 'ubs-csv') {
+    if (fileType === 'csv') {
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
           const text = e.target?.result as string
-          const result = parseUbsCsv(text)
-          setParsed({ type: 'ubs-csv', data: result })
+          if (isVisecaCsv(text)) {
+            const result = parseVisecaCsv(text)
+            setParsed({ type: 'viseca-csv', data: result })
+          } else if (isDkbCsv(text)) {
+            const result = parseDkbCsv(text)
+            setParsed({ type: 'dkb-csv', data: result })
+          } else {
+            const result = parseUbsCsv(text)
+            setParsed({ type: 'ubs-csv', data: result })
+          }
         } catch (err) {
           setParseError(err instanceof Error ? err.message : 'Failed to parse CSV')
         }
@@ -718,6 +1105,59 @@ export function ImportPage() {
           period={{ from: p.header.from, to: p.header.to }}
           iban={p.header.iban}
           accounts={accounts}
+          accountHint={{
+            iban: p.header.iban,
+            institution: 'UBS',
+            accountType: 'CHECKING',
+            currency: p.header.currency || 'CHF',
+            description: `UBS Account ${p.header.accountNumber}`,
+          }}
+          onCancel={handleCancel}
+          onImported={handleImported}
+        />
+      )
+    }
+
+    if (parsed.type === 'dkb-csv') {
+      const p = parsed.data
+      const wipTxs = p.transactions
+        .map((tx, i) => dkbToWip(tx, '', i))
+        .filter((t): t is Record<string, unknown> => t !== null)
+      const skipped = p.transactions.length - wipTxs.length
+      const dates = wipTxs.map((t) => t.booking_date as string).filter(Boolean).sort()
+
+      return (
+        <TransactionPreview
+          file={selectedFile}
+          parserType="dkb-csv"
+          wipTransactions={wipTxs}
+          skippedCount={skipped}
+          period={{ from: dates[0] ?? '', to: dates[dates.length - 1] ?? '' }}
+          iban={p.header.iban}
+          accounts={accounts}
+          accountHint={{
+            iban: p.header.iban,
+            institution: 'DKB',
+            accountType: 'CHECKING',
+            currency: 'EUR',
+            description: `DKB ${p.header.accountType}`,
+          }}
+          onCancel={handleCancel}
+          onImported={handleImported}
+        />
+      )
+    }
+
+    if (parsed.type === 'viseca-csv') {
+      const p = parsed.data
+      const wipTxs = p.transactions.map((tx) => visecaToWip(tx, ''))
+
+      return (
+        <VisecaPreview
+          file={selectedFile}
+          parsed={p}
+          wipTransactions={wipTxs}
+          accounts={accounts}
           onCancel={handleCancel}
           onImported={handleImported}
         />
@@ -737,6 +1177,12 @@ export function ImportPage() {
           period={{ from: p.header.periodFrom, to: p.header.periodTo }}
           iban={p.header.iban}
           accounts={accounts}
+          accountHint={{
+            iban: p.header.iban,
+            institution: 'Yuh',
+            accountType: 'CHECKING',
+            currency: p.header.currency || 'CHF',
+          }}
           onCancel={handleCancel}
           onImported={handleImported}
         />
@@ -799,7 +1245,7 @@ export function ImportPage() {
               <div>
                 <p className="font-medium">Drop a file here or click to browse</p>
                 <p className="text-sm text-text-muted mt-1">
-                  Supports UBS CSV, Yuh PDF statements, employer payslip PDFs
+                  Supports UBS CSV, DKB CSV, Viseca credit card CSV, Yuh PDF, employer payslip PDFs
                 </p>
               </div>
               <label className="inline-block px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 cursor-pointer">

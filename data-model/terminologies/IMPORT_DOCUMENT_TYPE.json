@@ -6,6 +6,7 @@
   },
   "terms": [
     { "value": "BANK_STATEMENT", "label": "Bank Statement", "description": "Bank account statement (transactions)" },
-    { "value": "PAYSLIP", "label": "Payslip", "description": "Employer payslip / salary statement" }
+    { "value": "PAYSLIP", "label": "Payslip", "description": "Employer payslip / salary statement" },
+    { "value": "CREDIT_CARD_STATEMENT", "label": "Credit Card Statement", "description": "Credit card transaction export (Viseca, etc.)" }
   ]
 }
