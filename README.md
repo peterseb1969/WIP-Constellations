@@ -57,7 +57,9 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Field Report: Day 6](WIP_Journey_Day6.md) | Hardware investigation, module audit, Receipt Scanner in 2h15m |
 | [Field Report: Day 7](WIP_Journey_Day7.md) | The checklist — publishing focus, quality audit, CI pipeline |
 | [Field Report: Day 8](WIP_Journey_Day8.md) | The process — MCP expansion (68 tools), doc overhaul, Viseca/DKB parsers |
-| [The D&D Experiment](WIP_DnD_Experiment.md) | Fresh-directory test — 1,129 documents from a 412-page PDF, zero tutoring |
+| [The D&D Experiment](WIP_DnD_Experiment.md) | Fresh-directory test — 1,384 documents from a 412-page PDF, zero tutoring |
+| [Field Report: Day 9](WIP_Journey_Day9.md) | The release — v1.0.0, D&D compendium app, NL query interface |
+| [Field Report: Day 10](WIP_Journey_Day10.md) | Ralph — documentation audit, 78 files, release checklist |
 
 ## Prerequisites
 
