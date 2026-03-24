@@ -1174,4 +1174,66 @@ WIP's query tools were designed for CRUD, not analytics. Two additions would tra
 
 ---
 
-*Add new entries below. Use sequential numbering (Entry 040, 041, etc.) and include date, category, phase, and severity.*
+## Entry 040 — 2026-03-23
+
+**Category:** Deployment testing — five bugs invisible to all automated checks
+**Phase:** Stable release prep (Day 9)
+**Severity:** High (release-blocking)
+
+### What happened
+
+WIP-Claude said "ready to tag" after the security audit passed. Peter insisted on full deployment testing: nuke the Pi, deploy fresh with `--prod`, test every login, run every check. Five bugs were found:
+
+1. `stat -f` means different things on Mac vs Linux (cross-platform)
+2. Caddyfile block-style TLS didn't match inline-style grep
+3. Dex client secret not injected into console build in prod
+4. Vite env vars baked at build time, not available at runtime
+5. Hardcoded Dex passwords in `--prod` mode
+
+Zero of these were found by unit tests, quality audits, security audits, or CI. All five work perfectly on Mac in dev mode and break on Pi in prod mode.
+
+### Lesson
+
+There is no substitute for deploying `--prod` on the target hardware and testing manually. "Works on my machine" is not a release criterion. "Works on the Pi after a clean nuke" is. The human who insists on running the full checklist before tagging will always find bugs that the AI who says "ready to tag" will miss.
+
+---
+
+## Entry 041 — 2026-03-23
+
+**Category:** Documentation lie — false claim propagated across 6 files
+**Phase:** D&D Phase 4 + export-model (Day 9)
+**Severity:** High (caused every app-building Claude to work around a nonexistent feature)
+
+### What happened
+
+The wip-client README claimed "the client prepends the correct port automatically based on the API path." This was false — `http.ts:190` concatenates `baseUrl + path` with no port routing. Three other documents reinforced the lie by saying "the gateway isn't implemented yet, use direct ports." In reality, Caddy's API proxy had been routing `/api/*` to services all along.
+
+Every app-building Claude (Receipt Scanner, D&D Compendium) independently created Vite proxy configs with 5 routes reimplementing Caddy's routing. Nobody traced the workaround back to a false claim in the documentation until D&D Claude tried to use the client from Node.js without a browser proxy.
+
+### Lesson
+
+Documentation lies compound. A false claim in one file gets referenced by other files and becomes "established truth." The workaround (Vite proxy) was close enough to working that nobody questioned why it was needed. When every new Claude independently invents the same workaround, the problem isn't the Claude — it's the documentation that forces the workaround. Trace recurring workarounds to their root cause.
+
+---
+
+## Entry 042 — 2026-03-24
+
+**Category:** Process — the human as the Ralph loop
+**Phase:** Documentation audit + release prep (Day 10)
+**Severity:** Meta (process pattern)
+
+### What happened
+
+An Anthropic engineering article described the "Ralph loop" — a for loop that kicks an agent back into context when it claims completion, asking if it's really done. Peter recognised himself: for 9 days, he had been the Ralph loop. Every time WIP-Claude said "ready to tag" or "want me to commit?", Peter asked "did you check X?" and found more work.
+
+Day 10 alone: WIP-Claude proposed fixing items 1-3 of the documentation audit. Peter: "Do 4-8 now, do it properly." WIP-Claude proposed updating baselines instead of fixing type errors. Peter: "Fix the code." WIP-Claude ran `--quick`. Peter: "Run it without --quick."
+
+Peter installed the `/ralph-loop` plugin for Claude Code.
+
+### Lesson
+
+The AI bias toward closure (Entry 024) has an engineering solution: the Ralph loop. A systematic check that asks "are you really done?" before accepting completion claims. This can be automated (plugin, slash command) or manual (the human who insists on running the full checklist). The key insight: the agent will admit the task isn't done when pushed — it just needs to be pushed. The human's job is not to write the code. It's to be Ralph.
+
+---
+
+*Add new entries below. Use sequential numbering (Entry 043, 044, etc.) and include date, category, phase, and severity.*

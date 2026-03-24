@@ -1,6 +1,6 @@
 # The D&D Experiment: From PDF to Queryable World in One Afternoon
 
-*In which a fresh Claude, armed with nothing but documentation, turns a 412-page German PDF into 1,129 structured documents — and then answers questions about them.*
+*In which a fresh Claude, armed with nothing but documentation, turns a 412-page German PDF into 1,384 structured documents — and then answers questions about them.*
 
 ---
 
@@ -105,6 +105,7 @@ The critical discovery: **agents survive compaction.** They're independent proce
 | Entity | Documents | Notes |
 |---|---|---|
 | DND_SPELL | 354 | Near-complete SRD spell list |
+| DND_CLASS_FEATURE | 255 | Level 1-20 progression for all 12 classes |
 | DND_MONSTER | 245 | ~60% of SRD bestiary |
 | DND_MAGIC_ITEM | 223 | Good coverage |
 | DND_ADVENTURING_GEAR | 81 | Complete |
@@ -123,7 +124,7 @@ The critical discovery: **agents survive compaction.** They're independent proce
 | DND_TRAP | 8 | Complete |
 | DND_BACKGROUND | 4 | Complete |
 | DND_DISEASE | 3 | Complete |
-| **Total** | **1,129** | **21 terminologies, 220 terms, 20 templates, 18 ontology relationships** |
+| **Total** | **1,384** | **21 terminologies, 286 terms, 20 templates, 18 ontology relationships** |
 
 All documents include German translations in a structured `translations` array. All term references are validated against WIP terminologies. All document references (subclass→class, magic item→weapon) are resolved.
 
@@ -166,7 +167,7 @@ Correctly reported: Beholder is Wizards of the Coast Product Identity, excluded 
 30 monsters in a formatted table. 16 Adult/Ancient Dragons, Dragon Turtle, Kraken, Pit Fiend, Iron Golem, Purple Worm, and more.
 
 **Q11: Total documents in the dnd namespace?**
-952 counted (actually 1,129 — the tally missed 5 templates and 177 documents due to compaction context loss).
+952 counted (actually 1,384 — the tally missed 5 templates and 177 documents due to compaction context loss).
 
 **Q12: Full Aboleth stat block?**
 Complete: AC 17, HP 135, all ability scores, saving throws, skills, CR 10, 3 actions (Multiattack, Tentacle, Enslave), 3 legendary actions (Detect, Tail Swipe, Psychic Drain), special traits (Mucous Cloud, Probing Telepathy, Amphibious), and disease mechanics. The 40-field monster template delivered exactly what it was designed for.
@@ -183,7 +184,7 @@ Complete: AC 17, HP 135, all ability scores, saving throws, skills, CR 10, 3 act
 
 **The phased process prevented mistakes.** Phase 2 (design) caught the `name_de` extensibility problem before any code was written. The translations array with seed LANGUAGE terminology was designed, approved, and implemented correctly — and it worked when Q8 asked for the German name of Fireball. The process isn't overhead; it's investment.
 
-**The data quality is remarkably high.** 1,129 documents parsed from a German PDF, with validated term references, resolved document references, German translations, and ontology relationships. One parsing error in 261 Phase 3 entities. The PoNIFs resource prevented the systematic errors that plagued Statement Manager v1.
+**The data quality is remarkably high.** 1,384 documents parsed from a German PDF, with validated term references, resolved document references, German translations, and ontology relationships. One parsing error in 261 Phase 3 entities. The PoNIFs resource prevented the systematic errors that plagued Statement Manager v1.
 
 **The agent fire-and-forget pattern is a genuine technique.** Agents survive compaction. This transforms the context limit from a hard wall into a pagination mechanism — launch agents, let compaction happen, query the survivors, repeat. Not documented anywhere, discovered empirically.
 
@@ -213,11 +214,11 @@ The answer is yes, with caveats. The AI needs:
 
 What it doesn't need: tutorials, examples, hand-holding, or access to other apps' source code. The documentation IS the teacher. The process IS the quality gate. The human IS the standard of evidence.
 
-The D&D experiment produced 1,129 documents, 21 terminologies, 220 terms, 20 templates, and 18 ontology relationships from a 412-page German PDF. The first prompt to the last query answer spanned about 5 hours, including compaction cycles, a 2-hour subscription limit pause, and Peter leaving the room for 35 minutes during the most productive 5.5 minutes of the session.
+The D&D experiment produced 1,384 documents, 21 terminologies, 286 terms, 20 templates, and 18 ontology relationships from a 412-page German PDF. The first prompt to the last query answer spanned about 5 hours, including compaction cycles, a 2-hour subscription limit pause, and Peter leaving the room for 35 minutes during the most productive 5.5 minutes of the session.
 
 If someone told you that a developer's Mac running 5 microservices could store, validate, version, and serve D&D's entire SRD as structured data — with multilingual support, ontology relationships, and term-validated fields — and that the data model was designed and populated by an AI that learned the platform from documentation alone, in an afternoon... you'd probably ask to see the receipts.
 
-Here they are. 1,129 of them.
+Here they are. 1,384 of them.
 
 *(And when the wip-toolkit migrates this dataset to a dedicated `dnd` namespace on the Raspberry Pi, it'll prove that too.)*
 
@@ -241,6 +242,18 @@ These findings should be addressed before or shortly after the stable release:
 
 ---
 
-*This document records the D&D SRD 5.2.1 experiment conducted on Day 8 of the WIP Constellation experiment (Sunday, March 22, 2026). It is both a success story and a technical findings report. The data remains in the WIP instance for further experimentation, including Phase 4 (application layer) and future integration with other constellation apps.*
+*This document records the D&D SRD 5.2.1 experiment conducted on Days 8-9 of the WIP Constellation experiment (Sunday-Monday, March 22-23, 2026). It is both a success story and a technical findings report. The data remains in the WIP instance, now queryable through an 8-page React app with AI-powered natural language search.*
 
-*See [Day 8: The Process](WIP_Journey_Day8.md) for the full day's narrative.*
+### What's Next
+
+The D&D Q&A session exposed the gap between "data is in WIP" and "a human can get answers." Three ideas emerged on Monday morning — and by Monday evening, one was built:
+
+**Built: AI-powered NL query interface.** A chat bubble in the D&D Compendium where users type natural language questions. The backend connects a Claude Haiku instance to WIP's MCP server (68 tools), loads `wip://data-model` and `wip://conventions` dynamically at boot, and runs an agentic tool loop. Multi-turn conversation with memory. Cost: $0.02 per conversation on Haiku.
+
+The demo: "Select a random beast" → full Lion stat block (1 tool call). "Which beast is beautiful?" → reasoned from proxy stats, no beauty field exists (1 tool call). "How to kill a deer with magic?" → cross-template query: monster stats + spell damage + tactical advice (2 tool calls). "What about the other beasts?" → comparison table of all 5 beasts from turn 2 (2 tool calls). Four turns, $0.02, structured data turned into game advice.
+
+The system prompt was written by the D&D Claude itself — 51 lines documenting all 20 templates, query tips, and formatting guidelines. The Claude that designed the schema wrote the instructions for the next Claude to query it.
+
+**Planned:** `/analyst` slash command (done — the same pattern for Claude Code), `WIP_MCP_MODE=readonly` (env var to enforce read-only), deterministic SQL dashboard (saved queries without AI cost).
+
+*See [Day 8: The Process](WIP_Journey_Day8.md) for the documentation overhaul. See [Day 9: The Release](WIP_Journey_Day9.md) for the v1.0.0 tag, D&D Phase 4, and the NL query interface.*
