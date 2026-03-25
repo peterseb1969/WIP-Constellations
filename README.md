@@ -60,6 +60,7 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [The D&D Experiment](WIP_DnD_Experiment.md) | Fresh-directory test — 1,384 documents from a 412-page PDF, zero tutoring |
 | [Field Report: Day 9](WIP_Journey_Day9.md) | The release — v1.0.0, D&D compendium app, NL query interface |
 | [Field Report: Day 10](WIP_Journey_Day10.md) | Ralph — documentation audit, 78 files, release checklist |
+| [Field Report: Day 11](WIP_Journey_Day11.md) | The namespace reckoning — CT Claude, MCP audit, 182K documents |
 
 ## Prerequisites
 

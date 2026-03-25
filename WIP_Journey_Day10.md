@@ -245,4 +245,4 @@ Result: 1,370 of 1,384 documents imported (99%). The 14 failures were DND_SUBCLA
 
 *Day 10 status: The documentation lie was the tip of the iceberg — 78 files audited, 12 issues fixed, ~120 curl examples rewritten. A release checklist with documentation smoke tests was created. CI took 10 tags to get green on aarch64. The v1.1 namespace deletion policy was designed (two modes, delete journal, dry-run, six flaws found). The wip-toolkit got 8 bug fixes across export and import, and the D&D dataset was migrated to the Pi at 99% — the 1% failure is a toolkit bug, not a missing backend feature. The backend already supports ID pass-through; the toolkit just isn't triggering it. Eight commits, 6 hours, and the discovery that Peter has been the Ralph loop all along.*
 
-*See [Day 9: The Release](WIP_Journey_Day9.md) for the previous day.*
+*See [Day 9: The Release](WIP_Journey_Day9.md) for the previous day. See [Day 11: The Namespace Reckoning](WIP_Journey_Day11.md) for the next day.*
