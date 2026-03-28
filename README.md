@@ -61,6 +61,8 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Field Report: Day 9](WIP_Journey_Day9.md) | The release — v1.0.0, D&D compendium app, NL query interface |
 | [Field Report: Day 10](WIP_Journey_Day10.md) | Ralph — documentation audit, 78 files, release checklist |
 | [Field Report: Day 11](WIP_Journey_Day11.md) | The namespace reckoning — CT Claude, MCP audit, 182K documents |
+| [Field Report: Day 12](WIP_Journey_Day12.md) | The invisible bug — reporting-sync, 5 apps worked around it |
+| [Field Report: Day 13](WIP_Journey_Day13.md) | From design to code — 20 commits, 7 Claudes, 4 platforms |
 
 ## Prerequisites
 
