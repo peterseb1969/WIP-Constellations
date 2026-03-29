@@ -1,7 +1,7 @@
 # WIP Constellation Experiment — Day 15: The Process Reproduces Itself
 
 **Date:** Sunday, March 29, 2026
-**Duration:** Noon to evening (~8 hours)
+**Duration:** Noon to midnight (~12 hours)
 **Theme:** Bug fixes, design primitives, parallel execution, and the experiment's logical conclusion
 
 ---
@@ -274,6 +274,42 @@ The first Claude bootstrapped by `setup-backend-agent.sh` — no manual onboardi
 
 **Key contribution:** Reporting-sync had zero tests against real PostgreSQL — everything was mocked. The YAC Claude built a full integration and E2E test suite. First CI run caught a real bug immediately. The process produced a contributor that improved the codebase on day one.
 
+### YAC Evening: Mutable Terminologies Implemented
+
+The morning's design discussion became working code by 23:08. The YAC Claude implemented the full mutable terminologies feature:
+
+- `mutable: bool` field across Terminology model, API, service layer
+- Hard-delete logic: mutable terms removed from MongoDB (not deactivated), cascade to relationships
+- NATS events carry `hard_delete: true` flag — no new event types
+- Reporting-sync: hard_delete → SQL DELETE
+- WIP-Toolkit: mutable added to import payloads
+- Console UI: mutable checkbox, tag, detail view
+- MCP server: mutable parameter on create/update tools
+- @wip/client + @wip/react bumped to 0.2.0
+
+8 commits, ~25 files, 7 components touched. Then **130 new tests** across 5 components:
+
+| Component | New tests | Coverage gap closed |
+|---|---|---|
+| Def-Store (mutable) | 16 | 0 → 16 |
+| Reporting-Sync (hard-delete) | 9 | 0 → 9 |
+| MCP Server | 32 | 20 → 64 (3.2x) |
+| @wip/react hooks | 37 | 0 → 37 |
+| Registry grants | 36 | 0 → 36 |
+
+From "Fragile X can't be added" to a fully implemented, tested primitive — in one day. Designed by Peter + WIP-Claude, implemented by a YAC Claude bootstrapped by a script.
+
+---
+
+## WIP-Claude Evening: Statement Manager on K8s
+
+WIP-Claude deployed the Statement Manager to K8s using `@wip/proxy` — the middleware built that same afternoon. Two apps on K8s now:
+
+- D&D Compendium at `https://wip-kubi.local/apps/dnd/`
+- Statement Manager at `https://wip-kubi.local/apps/finance/`
+
+Both using `@wip/proxy` for auth injection. No credentials in the browser.
+
 ---
 
 ## CT Claude: Day 15 Final Report
@@ -296,25 +332,27 @@ The same Claude that 24 hours ago couldn't find a `.env` file. The plan (20 min)
 
 | Metric | Value |
 |---|---|
-| Total commits | 29 (multiple agents) |
-| Total files changed | 105 |
-| Total lines | +4,306 / -1,683 |
-| Bugs fixed | 7+ (template deactivation, files namespace, ontology labels, relationships, namespace deletion PG orphans, bulk template auto-synonyms, dotted column names) |
+| Total commits | 37+ (multiple agents, full day) |
+| Total files changed | 130+ |
+| Total lines | +6,000+ |
+| Bugs fixed | 7+ |
 | Design docs created | 2 (mutable terminologies, app gateway) |
+| Mutable terminologies | Designed + fully implemented + 57 tests (same day) |
 | `@wip/proxy` | Shipped (70 → 1 line) |
+| `@wip/client` + `@wip/react` | Bumped to 0.2.0 (mutable types, delete hooks) |
 | `@wip/client` tests | 111 (11 new, including awaitSync helper) |
 | `setup-backend-agent.sh` | Complete, 3 transport modes, fresh-clone validated |
 | Slash commands | 9 backend + 12 app-builder (reorganized) |
-| Four-time offender | Killed with auto-build (Days 9, 11, 13, 15) |
-| YAC Claude | 7 commits, 1,989 lines, 50 tests, 2 bugs caught, zero onboarding |
-| CI (Pi, real PostgreSQL) | 265 passed, 1 failed → fixed |
+| YAC Claude | 7+8 commits, 1,989+130 test lines, 2 bugs caught, zero onboarding |
+| YAC new tests | 130 across 5 components |
+| K8s apps deployed | 2 (D&D + Statement Manager) |
+| CI (Pi, real PostgreSQL) | 265 passed → bugs fixed → 130 more tests added |
 | CT Claude 5-sprint plan | 14m 12s execution |
-| CT Claude orphan files | 1,748 deleted |
-| Fresh-clone issues found | 4 (Python 3.14, setuptools, npm tarballs, stdout capture) |
+| Four-time offender | Killed with auto-build |
 | Planning : building ratio | ~6:1 |
 
 ---
 
-*Day 15 status: 29 commits, 105 files, +4,306 lines across multiple agents — including the first YAC Claude, bootstrapped by the very script built today. The experiment's arc completes: Day 1 asked "can multiple Claudes share a backend?" Day 15 answered with `git clone` → `./scripts/setup-backend-agent.sh` → a Claude that produces 1,989 lines and catches real bugs with zero manual onboarding. `@wip/proxy` shipped (70 → 1 line). CT Claude executed a 5-sprint plan in 14 minutes. Seven bugs fixed. Two design documents. The four-time tarball offender killed. "Working Principles" encoded in three lines. The constellation dissolves — not because it failed, but because the process now reproduces itself. There are no more named Claudes. Just YAC.*
+*Day 15 status: The experiment's conclusion and continuation in one day. Mutable terminologies went from fireside-chat idea to fully implemented + tested primitive by midnight — designed by Peter + WIP-Claude, implemented by a YAC Claude bootstrapped from the script built that same afternoon. 130 new tests across 5 components. Two apps on K8s. `@wip/proxy` shipped and already in use. CT Claude's 5-sprint plan in 14 minutes. `setup-backend-agent.sh` validated by its own output. "Working Principles" encoded for every future agent. The constellation dissolves into something better: self-teaching repos, self-bootstrapping agents, self-reproducing process. 37+ commits, 130+ files, 6,000+ lines — on a Sunday. There are no more named Claudes. Just YAC.*
 
 *See [Day 14: Production Hardening](WIP_Journey_Day14.md) for the previous day.*
