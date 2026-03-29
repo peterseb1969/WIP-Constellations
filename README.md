@@ -64,6 +64,7 @@ This is a personal experiment, not a product. The app supports a random combinat
 | [Field Report: Day 12](WIP_Journey_Day12.md) | The invisible bug — reporting-sync, 5 apps worked around it |
 | [Field Report: Day 13](WIP_Journey_Day13.md) | From design to code — 20 commits, 7 Claudes, 4 platforms |
 | [Field Report: Day 14](WIP_Journey_Day14.md) | Production hardening — K8s, multi-pass import, the process is the product |
+| [Field Report: Day 15](WIP_Journey_Day15.md) | The process reproduces itself — YAC, @wip/proxy, the constellation dissolves |
 
 ## Prerequisites
 

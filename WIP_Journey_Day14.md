@@ -369,4 +369,4 @@ If Peter hadn't challenged, "ghost synonyms" would have become a roadmap item, a
 
 *Day 14 status: Twelve hours, noon to midnight. The longest and most important day of the experiment. 22 commits, ~5,400 lines, across 3 Claudes. WIP deployed to K8s (13 pods, 3 Pis, MCP via HTTP). D&D Compendium running with chat. Multi-pass import: 1,384/1,384, zero failures. v1.0.11 released. Windows validated (139s full install). CT Claude built a classification rules engine, AE analytics, molecule comparison, and an offline import pipeline. The fireside chat crystallised the architecture: @wip/client as the only agent path, Gateway for the proxy problem, reporting for analytics only. And the experiment's most valuable finding, paid in nerves and patience: a naive Claude without the prepared environment took hours to do what a prepared Claude does in minutes. The process is the product.*
 
-*See [Day 13: From Design to Code](WIP_Journey_Day13.md) for the previous day.*
+*See [Day 13: From Design to Code](WIP_Journey_Day13.md) for the previous day. See [Day 15: The Process Reproduces Itself](WIP_Journey_Day15.md) for the next day.*
